@@ -1,2 +1,4 @@
-opendata_essays.zip
-essays_and_labels.csv
+data/full_labeled_essays.csv
+data/full_labeled_essays*
+data/opendata_essays*
+data/essays_and_labels*
