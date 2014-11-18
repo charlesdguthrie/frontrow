@@ -54,8 +54,6 @@ def join_essays_to_labels(row, row_id):
 
     labeled_df['essay'][labeled_df['_projectid']==pid] = essay
     myline = labeled_df[labeled_df['_projectid']==pid]
-    if myline.shape[1]>8:
-        print "extra wide row:",row_id
     return myline
 
 util.chunker(chunksize,full_essays_path,prep_data)

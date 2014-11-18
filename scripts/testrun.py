@@ -67,23 +67,23 @@ def generate_features(df):
     m,n = df.shape
     for RowTuple in df.iterrows():
         try:
-	   row = RowTuple[1]
-           title = str(row["title"])
-           essay = str(row["essay"])
-           needs = str(row["need_statement"])
-           label = row["got_posted"]
-           words = title + " " + essay + " " + needs
-           words = RemoveSpecialUnicode(words)
-	   wordset = get_wordset(words)
-           trimmed = RemoveStopsSymbols(wordset)
-           stemmed = stemming(trimmed)
-	   features = word_indicator(stemmed)
-           features_labels.append((features,label))
+            row = RowTuple[1]
+            title = str(row["title"])
+            essay = str(row["essay"])
+            needs = str(row["need_statement"])
+            label = row["got_posted"]
+            words = title + " " + essay + " " + needs
+            words = RemoveSpecialUnicode(words)
+            wordset = get_wordset(words)
+            trimmed = RemoveStopsSymbols(wordset)
+            stemmed = stemming(trimmed)
+            features = word_indicator(stemmed)
+            features_labels.append((features,label))
         except:
-           print ">>>>>>>>>>ERROR"
-           print "ROW",RowTuple[0]
-	   print row    
-	   break
+            print ">>>>>>>>>>ERROR"
+            print "ROW",RowTuple[0]
+            print row    
+            break
     return features_labels
         
         
@@ -163,8 +163,8 @@ def LoadByChunking(filename,breakme=False,chunksize=10000,MaxChunks=5):
 	data_app = pd.DataFrame(columns=headers)
 	data_rej = pd.DataFrame(columns=headers)
 
-# breakme is used to stop it from iterating through all the chunks when only
-# small batches sizes are wanted for testing.
+    # breakme is used to stop it from iterating through all the chunks when only
+    # small batches sizes are wanted for testing.
 	j = 0
 	for chunk in essays_labels:
 	    data_app = data_app.append(chunk[chunk.got_posted=='t'])
