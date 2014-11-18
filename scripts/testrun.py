@@ -2,7 +2,7 @@ import pandas as pd
 import sklearn as sk
 #import sklearn.linear_model as lm
 from sklearn.metrics import roc_curve, auc
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from sklearn.cross_validation import KFold
 from sklearn import preprocessing
 import re
@@ -26,11 +26,7 @@ file_essays_labels = os.path.join(datadir,"full_labeled_essays.csv")
 file_essays_labels2 = os.path.join(datadir,"essays_and_labels.csv")
 file_resources = os.path.join(datadir,"opendata_resources.csv")
 
-chunksize = 10000
-#essays_labels = pd.read_csv(file_essays,iterator=True,chunksize=chunksize)
-#essays_labels = pd.read_csv(file_essays_labels,iterator=True,chunksize=chunksize)
-essays_labels = pd.read_csv(file_essays_labels2,iterator=True,chunksize=chunksize)
-#resources = pd.read_csv(file_resources,iterator=True,chunksize=chunksize)
+
 
 
 
@@ -69,18 +65,25 @@ def generate_features(df):
     
     features_labels=[]
     m,n = df.shape
-    for i in range(m):
-        row = df.irow(i)
-        title = str(row.title)
-        essay = str(row.essay)
-        needs = str(row.need_statement)
-        label = row.got_posted
-        words = title + " " + essay + " " + needs
-        wordset = get_wordset(words)
-        trimmed = RemoveStopsSymbols(wordset)
-        stemmed = stemming(trimmed)
-        features = word_indicator(stemmed)
-        features_labels.append((features,label))
+    for RowTuple in df.iterrows():
+        try:
+	   row = RowTuple[1]
+           title = str(row["title"])
+           essay = str(row["essay"])
+           needs = str(row["need_statement"])
+           label = row["got_posted"]
+           words = title + " " + essay + " " + needs
+           words = RemoveSpecialUnicode(words)
+	   wordset = get_wordset(words)
+           trimmed = RemoveStopsSymbols(wordset)
+           stemmed = stemming(trimmed)
+	   features = word_indicator(stemmed)
+           features_labels.append((features,label))
+        except:
+           print ">>>>>>>>>>ERROR"
+           print "ROW",RowTuple[0]
+	   print row    
+	   break
     return features_labels
         
         
@@ -93,6 +96,12 @@ def Stopwords(text):
     
 def Symbols(text):
     return [w for w in text if re.search('[a-zA-Z]', w) and len(w) > 1]
+
+def RemoveSpecialUnicode(words):
+    for c in words:
+        if not re.search('[a-zA-Z0-9_]',c):
+            words = str.replace(words,c," ")
+    return words
     
 def RemoveStopsSymbols(tokens):
     text = text_obj(tokens)
@@ -128,27 +137,48 @@ mytest_size = 0.3
 
 features_labels = []
 
+'''
+################### READ DIRECTLY TO DATA FRAME, NO CHUNKING
+essays_labels = pd.read_csv(file_essays_labels2)
+headers = essays_labels.columns
+
+data_app = essays_labels[essays_labels.got_posted=='t']
+data_rej = essays_labels[essays_labels.got_posted!='t']
+################### END READ
+'''
 
 
+#################### BEGIN CHUNKING (DO NOT USE WHEN DIRECTLY READING TO DF)
 # Generate the data frame by first creating creating an empty data frame
 # and successively append each chunk to it.  To get the headers, grab the
 # column names from a chunk of size 1.
-firstchunk = essays_labels.get_chunk(1)
-headers = firstchunk.columns
 
-data_app = pd.DataFrame(columns=headers)
-data_rej = pd.DataFrame(columns=headers)
+def LoadByChunking(filename,breakme=False,chunksize=10000,MaxChunks=5):
+	chunksize = 10000
+	essays_labels = pd.read_csv(file_essays_labels2,iterator=True,chunksize=chunksize)
+
+	firstchunk = essays_labels.get_chunk(1)
+	headers = firstchunk.columns
+
+	data_app = pd.DataFrame(columns=headers)
+	data_rej = pd.DataFrame(columns=headers)
 
 # breakme is used to stop it from iterating through all the chunks when only
 # small batches sizes are wanted for testing.
-breakme = True
-j = 0
-for chunk in essays_labels:
-    data_app = data_app.append(chunk[chunk.got_posted=='t'])
-    data_rej = data_rej.append(chunk[chunk.got_posted!='t'])
-    j=j+1
-    if breakme and j >= 5:
-        break
+	j = 0
+	for chunk in essays_labels:
+	    data_app = data_app.append(chunk[chunk.got_posted=='t'])
+	    data_rej = data_rej.append(chunk[chunk.got_posted!='t'])
+	    j=j+1
+	    if breakme and j >= 1:
+		break
+	return data_app,data_rej,headers
+
+data_app,data_rej,headers = RunItTimeIt(LoadByChunking,
+	[file_essays_labels2,False],True,
+	"Load data by chunking,")
+################### END CHUNKING
+
 
 # <<<<< MAY NEED TO BE REVISED IN FUTURE >>>>>
 # for now, just get rid of rows with missing labels.  there aren't that
@@ -156,6 +186,9 @@ for chunk in essays_labels:
 data_app = data_app[data_app.got_posted.isnull()==False]
 data_rej = data_rej[data_rej.got_posted.isnull()==False]
 
+# reset indices in both data frames
+#data_app = data_app.reset_index()
+#data_rej = data_rej.reset_index()
 
 # change labels to 1 and 0
 data_app = data_app.replace(to_replace={'got_posted':{'t':1,'f':0}})
@@ -170,9 +203,13 @@ data_app_test = pd.DataFrame(data_app_test,columns=headers)
 data_rej_train = pd.DataFrame(data_rej_train,columns=headers)
 data_rej_test = pd.DataFrame(data_rej_test,columns=headers)
 
-# Generate features.  See RunItTimeIt description above
+
+############################# Generate features. 
+#   See RunItTimeIt description above
 train_app = RunItTimeIt(generate_features,[data_app_train],True,
        "finished generating features: training approved,")
+#train_app = generate_features(data_app_train)
+
 test_app = RunItTimeIt(generate_features,[data_app_test],True,
        "finished generating features: test approved,")
 train_rej = RunItTimeIt(generate_features,[data_rej_train],True,
@@ -181,14 +218,14 @@ test_rej = RunItTimeIt(generate_features,[data_rej_test],True,
        "finished generating features: test rejected,")
 
 
-# Combine training data and train classifier
+############################# Combine training data and train classifier
 train = train_app + train_rej
 test = test_app + test_rej
 
 classifier = RunItTimeIt(NaiveBayesClassifier.train,[train],True,
        "Train Naive Bayes Classifier,")
 
-# Test accuracies
+############################# Test accuracies
 print ('Test approved accuracy: {0:.2f}%'
        .format(100 * nltk.classify.accuracy(classifier, test_app)))
 print ('Test rejected accuracy: {0:.2f}%'
