@@ -14,6 +14,7 @@ from nltk.corpus import stopwords
 from collections import defaultdict
 from sklearn.cross_validation import train_test_split
 from stemming import stemming
+import os
 import time
 
 mydir = os.path.dirname(os.path.realpath(__file__))
@@ -31,17 +32,7 @@ chunksize = 10000
 essays_labels = pd.read_csv(file_essays_labels2,iterator=True,chunksize=chunksize)
 #resources = pd.read_csv(file_resources,iterator=True,chunksize=chunksize)
 
-'''
 
-nT = 0
-nF = 0
-
-for chunk in essays_labels:
-    m,n = chunk.shape
-    numtrue = np.sum(chunk.got_posted=="t")
-    nT += numtrue
-    nF += m-numtrue
-'''
 
 def process_label(label):
     if label == "t":
@@ -59,12 +50,12 @@ def RunItTimeIt(func, args=[], returnarg=False, msg=""):
     # NOTE: args must be a list
     start = time.time()
     if returnarg == True:
-        if len(args)=0:
+        if len(args)==0:
             outargs = func()
         else:
             outargs = func(*args)
     else:
-        if len(args)=0:
+        if len(args)==0:
             func()
         else:
             func(*args)
@@ -165,14 +156,12 @@ for chunk in essays_labels:
 data_app = data_app[data_app.got_posted.isnull()==False]
 data_rej = data_rej[data_rej.got_posted.isnull()==False]
 
-# this is redundant, but for some reason it's needed
-#headers = data_app.columns
 
-
-
+# change labels to 1 and 0
 data_app = data_app.replace(to_replace={'got_posted':{'t':1,'f':0}})
 data_rej = data_rej.replace(to_replace={'got_posted':{'t':1,'f':0}})
 
+# TRAIN/TEST split
 data_app_train, data_app_test = train_test_split(data_app,test_size=mytest_size)
 data_rej_train, data_rej_test = train_test_split(data_rej,test_size=mytest_size)
 
@@ -181,7 +170,7 @@ data_app_test = pd.DataFrame(data_app_test,columns=headers)
 data_rej_train = pd.DataFrame(data_rej_train,columns=headers)
 data_rej_test = pd.DataFrame(data_rej_test,columns=headers)
 
-
+# Generate features.  See RunItTimeIt description above
 train_app = RunItTimeIt(generate_features,[data_app_train],True,
        "finished generating features: training approved,")
 test_app = RunItTimeIt(generate_features,[data_app_test],True,
@@ -192,13 +181,14 @@ test_rej = RunItTimeIt(generate_features,[data_rej_test],True,
        "finished generating features: test rejected,")
 
 
+# Combine training data and train classifier
 train = train_app + train_rej
 test = test_app + test_rej
-
 
 classifier = RunItTimeIt(NaiveBayesClassifier.train,[train],True,
        "Train Naive Bayes Classifier,")
 
+# Test accuracies
 print ('Test approved accuracy: {0:.2f}%'
        .format(100 * nltk.classify.accuracy(classifier, test_app)))
 print ('Test rejected accuracy: {0:.2f}%'
