@@ -40,9 +40,9 @@ def getROC_NLTK(classifier,testset):
     roc_auc = auc(fpr,tpr)
     return fpr,tpr,roc_auc
 
-def TrainTestSplit(data_app,data_rej):
+def TrainTestSplit(data_app,data_rej,mytest_size=0.3):
     headers = data_app.columns
-    mytest_size = 0.3
+    
     print "Split: Train",mytest_size,"Test",1-mytest_size
     data_app_train, data_app_test = train_test_split(data_app,test_size=mytest_size)
     data_rej_train, data_rej_test = train_test_split(data_rej,test_size=mytest_size)
