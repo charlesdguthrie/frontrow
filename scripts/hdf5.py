@@ -18,8 +18,11 @@ This function reads a HDF5 file and return a dataframe
 
 """
 
+import os
+import pandas as pd
+
+
 def save_hdf5(df, file_name):
-    import os
     path = os.getcwd() + '\\' + file_name       
     df.to_hdf(path,'df', mode='a', format='table')
     return path
