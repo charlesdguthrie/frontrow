@@ -170,12 +170,12 @@ def LoadByChunking(filename,breakme=False,chunksize=10000,MaxChunks=5):
 	    data_app = data_app.append(chunk[chunk.got_posted=='t'])
 	    data_rej = data_rej.append(chunk[chunk.got_posted!='t'])
 	    j=j+1
-	    if breakme and j >= 1:
+	    if breakme and j >= MaxChunks:
 		break
 	return data_app,data_rej,headers
 
 data_app,data_rej,headers = RunItTimeIt(LoadByChunking,
-	[file_essays_labels2,False],True,
+	[file_essays_labels2,True],True,
 	"Load data by chunking,")
 ################### END CHUNKING
 
@@ -191,8 +191,8 @@ data_rej = data_rej[data_rej.got_posted.isnull()==False]
 #data_rej = data_rej.reset_index()
 
 # change labels to 1 and 0
-data_app = data_app.replace(to_replace={'got_posted':{'t':1,'f':0}})
-data_rej = data_rej.replace(to_replace={'got_posted':{'t':1,'f':0}})
+data_app = data_app.replace(to_replace={'got_posted':{'t':0,'f':1}})
+data_rej = data_rej.replace(to_replace={'got_posted':{'t':0,'f':1}})
 
 # TRAIN/TEST split
 data_app_train, data_app_test = train_test_split(data_app,test_size=mytest_size)
@@ -232,14 +232,55 @@ print ('Test rejected accuracy: {0:.2f}%'
        .format(100 * nltk.classify.accuracy(classifier, test_rej)))
 
 
-nT=0
-nF=0
+probs = []
+actual = []
+for item in test:
+    probs.append(classifier.prob_classify(item[0]).prob(1))
+    actual.append(item[1])
+probs = np.array(probs)
+actual = np.array(actual)
+fpr,tpr,_ = roc_curve(y_true=actual,y_score=probs)
+roc_auc = auc(lr_fpr,lr_tpr)
 
-for i in test:
-    if i[1]==True:
-        nT+=1
-    else:
-        nF+=1
-print nT
-print nF
 
+
+
+'''
+logreg.fit(train[train.columns[train.columns!='Y']],train.Y)
+lr_fitresults = logreg.predict(test[test.columns[test.columns!='Y']])
+lr_confidence = logreg.decision_function(test[test.columns[test.columns!='Y']])
+lr_fpr,lr_tpr,_ = roc_curve(y_true=Y,y_score=lr_confidence)
+lr_roc_auc = auc(lr_fpr,lr_tpr)
+end = time.time()
+'''
+
+print "Plot Results"
+plt.figure()
+plt.plot(fpr,tpr,label="NaiveBayes (AUC = %0.2f)" % roc_auc)
+plt.plot([0,1],[0,1],'k--')
+plt.xlim([0.0,1.0])
+plt.ylim([0.0,1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curves')
+plt.legend(loc="lower right")
+plt.show()
+
+
+'''
+totalpos = sum(actual)
+totalneg = len(actual)-totalpos
+fnr = totalpos*(1-tpr)/totalneg
+tnr = 1- fpr
+print "Plot Results"
+plt.figure()
+plt.plot(fnr,tnr,label="NaiveBayes (AUC = %0.2f)" % roc_auc)
+plt.plot([0,1],[0,1],'k--')
+plt.xlim([0.0,1.0])
+plt.ylim([0.0,1.05])
+plt.xlabel('False Negative Rate')
+plt.ylabel('True Negative Rate')
+plt.title('ROC Curves')
+plt.legend(loc="lower right")
+plt.show()
+'''
