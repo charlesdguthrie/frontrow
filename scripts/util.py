@@ -157,7 +157,7 @@ import textmining
 
 def termdocumentmatrix(df_column, preprocess = True):
     
-    # Initialize class to create term-document matrix
+    # Initialize a term document matrix
     matrix = textmining.TermDocumentMatrix()
     
     # Manipulate each essay
@@ -178,9 +178,9 @@ def termdocumentmatrix(df_column, preprocess = True):
         matrix_rows.append(row)
         
     # Convert to numpy array to store in DataFrame    
-    tdm_array = np.array(matrix_rows[1:])
-    tdm_terms = matrix_rows[0]
-    df = pd.DataFrame(tdm_array, columns = tdm_terms)
+    matrix_array = np.array(matrix_rows[1:])
+    matrix_terms = matrix_rows[0]
+    df = pd.DataFrame(matrix_array, columns = matrix_terms)
     
     ## We can create a csv file also
     # matrix.write_csv('test_term_matrix.csv', cutoff=1)
