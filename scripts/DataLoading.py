@@ -7,6 +7,15 @@ Created on Wed Nov 19 13:19:33 2014
 
 import pandas as pd
 from utils import *
+import os
+
+
+def getDataFilePath(filename):
+    mydir = os.path.dirname(os.path.realpath(__file__))
+    pardir = os.path.join(mydir,"..")
+    datadir = os.path.join(pardir,"data")
+    return os.path.join(datadir,filename)
+
 
 #################### BEGIN CHUNKING (DO NOT USE WHEN DIRECTLY READING TO DF)
 # Generate the data frame by first creating creating an empty data frame
@@ -47,6 +56,38 @@ def ReadFullCSV(filename,*args,**kwargs):
     return data_app,data_rej,headers
 ################### END READ
     
+    
+def ReviseDataLabels(data_app,data_rej):
+    print "Total Approved:",data_app.shape[0]
+    print "Total Rejected:",data_rej.shape[0]
+    
+    # <<<<< MAY NEED TO BE REVISED IN FUTURE >>>>>
+    # for now, just get rid of rows with missing labels.  there aren't that
+    # many anyway.
+    print "Total Approved with Missing Labels:",sum(data_app.got_posted.isnull())
+    print "Total Rejected with Missing Labels:",sum(data_rej.got_posted.isnull())
+    data_app = data_app[data_app.got_posted.isnull()==False]
+    data_rej = data_rej[data_rej.got_posted.isnull()==False]
+    
+    # change labels to 1 and 0
+    print "1 if Rejected, 0 if Approved"
+    data_app = data_app.replace(to_replace={'got_posted':{'t':0,'f':1}})
+    data_rej = data_rej.replace(to_replace={'got_posted':{'t':0,'f':1}})
+    
+    return data_app,data_rej
+
+def getChunkedData(filename,breakme=True,MaxChunks=1):
+    filepath = getDataFilePath(filename)
+    data_app,data_rej,headers = LoadByChunking(filepath,breakme=True,MaxChunks=1)
+    return ReviseDataLabels(data_app,data_rej)
+    
+def getFullData(filename):
+    filepath = getDataFilePath(filename)
+    data_app,data_rej,headers = ReadFullCSV(filepath)
+    return ReviseDataLabels(data_app,data_rej)
+
+  
+    
 
 #   Chunker reads 'filen' one chunk at a time,
 #   with specified 'chunksize', then feeds
@@ -65,3 +106,5 @@ def chunker(chunksize,filen,func):
 def write_chunk(outpath,outchunk):
     with open(outpath, 'a') as f:
         outchunk.to_csv(f, header=False, index=False)
+        
+
