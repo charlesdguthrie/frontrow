@@ -7,7 +7,7 @@ Created on Wed Nov 19 12:46:28 2014
 
 from TextProcessing import *
 import textmining
-from util import *
+from utils import *
 
 @timethis
 def NLTKfeatures(df,lemmatize=False,*args,**kwargs):

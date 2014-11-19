@@ -6,7 +6,7 @@ Created on Wed Nov 19 13:19:33 2014
 """
 
 import pandas as pd
-from util import *
+from utils import *
 
 #################### BEGIN CHUNKING (DO NOT USE WHEN DIRECTLY READING TO DF)
 # Generate the data frame by first creating creating an empty data frame

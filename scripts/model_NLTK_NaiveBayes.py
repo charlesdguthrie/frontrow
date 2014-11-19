@@ -6,7 +6,7 @@ from nltk import NaiveBayesClassifier
 import nltk.classify
 from sklearn.cross_validation import train_test_split
 import os
-from util import *
+from utils import *
 from FeatureGeneration import *
 from Statistics import *
 from DataLoading import *
