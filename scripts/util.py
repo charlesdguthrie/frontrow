@@ -148,7 +148,7 @@ def termdocumentmatrix(df_column, preprocess = True)
 @
 @   This method recieves pandas.core.series.Series of text data and outputs 
 @   a term document matrix as pandas.core.frame.DataFrame. A user can choose 
-
+@   two different preprocessig methods by setting the 'preprocess' parameter.
 """
 
 
