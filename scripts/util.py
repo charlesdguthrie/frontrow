@@ -129,3 +129,117 @@ def word_indicator(wordset, **kwargs):
     for w in wordset:
         features[w] = True
     return features
+    
+
+
+
+"""
+begin{termdocumentmatrix}
+
+Created on Tue Nov 18 20:46:48 2014
+
+@author: Yasumasa
+
+def termdocumentmatrix(df_column, preprocess = True)
+@param   df_column    a column of Pandas DataFrame (i.e. full_essay, title etc.) 
+@param   preprocess   (Optional) This parameter is 'True' by default.
+@                     If 'True', use our preprocesing methods.
+@                     If 'False', use the textmining's default methods. 
+@
+@   This method recieves pandas.core.series.Series of text data and outputs 
+@   a term document matrix as pandas.core.frame.DataFrame. A user can choose 
+
+"""
+
+
+import textmining
+
+
+def termdocumentmatrix(df_column, preprocess = True):
+    
+    # Initialize class to create term-document matrix
+    matrix = textmining.TermDocumentMatrix()
+    
+    # Manipulate each essay
+    for doc in df_column:            
+        # Preprocessing 
+        if preprocess == True:
+            wordset = get_wordset(doc)
+            trimmed = RemoveStopsSymbols(wordset)
+            stemmed = stemming(trimmed)
+            doc = ' '.join(stemmed)
+       
+        # Add documents to matrix
+        matrix.add_doc(doc)
+        
+    # Create a list of lists    
+    matrix_rows = []
+    for row in matrix.rows(cutoff = 1):
+        matrix_rows.append(row)
+        
+    # Convert to numpy array to store in DataFrame    
+    tdm_array = np.array(matrix_rows[1:])
+    tdm_terms = matrix_rows[0]
+    df = pd.DataFrame(tdm_array, columns = tdm_terms)
+    
+    ## We can create a csv file also
+    # matrix.write_csv('test_term_matrix.csv', cutoff=1)
+    
+    return df
+
+
+
+# termdocumentmatrix() calls following functions
+# Yasu will delete this later.
+########################################################################
+
+import nltk
+import re
+import numpy as np
+import pandas as pd
+from nltk.tokenize import wordpunct_tokenize
+from nltk.stem import PorterStemmer
+
+
+def text_obj(tokens):
+    return nltk.Text(tokens)
+
+def Stopwords(text):
+    stopwords = nltk.corpus.stopwords.words('english')
+    return [w.lower() for w in text if w.lower() not in stopwords]
+    
+def Symbols(text):
+    return [w for w in text if re.search('[a-zA-Z]', w) and len(w) > 1]
+
+def RemoveStopsSymbols(tokens):
+    text = text_obj(tokens)
+    removed = Stopwords(text)
+    removed = Symbols(removed)
+    return removed    
+
+def get_wordset(string, stopwords=[], strip_html=True):
+    # Create a set of all tokenized words in string, and remove stopwords.
+    # Returns in list format
+    tokenized = wordpunct_tokenize(string.lower())
+    tokenset = set(tokenized)
+    tokenset = tokenset.difference(stopwords)
+    tokensetlist = [t for t in tokenset]
+    return tokensetlist
+
+def stemming(word_list):
+
+  stemmer = PorterStemmer()
+  
+  stemmed_word_list = []
+
+  for word in word_list:
+    stemmed = stemmer.stem(word)
+    stemmed_word_list.append(stemmed)
+
+  return stemmed_word_list
+  
+########################################################################
+
+'''
+end{termdocumentmatrix}
+'''
