@@ -92,7 +92,8 @@ def getFullData(filename):
 #   Chunker reads 'filen' one chunk at a time,
 #   with specified 'chunksize', then feeds
 #   chunk' and 'chunk_id' to function 'func'
-def chunker(chunksize,filen,func):
+@timethis
+def chunker(filen,func,chunksize=10000):
     #read file one chunk at a time
     with open(filen, 'rb') as inf:
         reader = pd.read_csv(inf, delimiter=',', quotechar='"',iterator=True, chunksize=chunksize)

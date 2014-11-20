@@ -2,11 +2,11 @@
 from sys import argv
 import pandas as pd
 import csv
-import util
+from DataLoading import *
 
 script, second = argv
 
-labeled_inpath = '../data/essay_data_clean.csv'
+labeled_inpath = '../data/essays_and_labels.csv'
 full_essays_path = '../data/opendata_essays.csv'
 outpath = '../data/' + second
 
@@ -14,7 +14,7 @@ print "loading " + labeled_inpath
 labeled_df=pd.read_csv(labeled_inpath,sep=',', header=0)
 print "finished loading " + labeled_inpath
 
-chunksize = 500
+
 out_columns = labeled_df.columns
 
 #initialize csv file
@@ -50,10 +50,11 @@ def write_chunk(outpath,outchunk):
 def join_essays_to_labels(row, row_id):
 
     pid = row[0].replace('"', '').strip()
+
     essay = row['essay']
 
     labeled_df['essay'][labeled_df['_projectid']==pid] = essay
     myline = labeled_df[labeled_df['_projectid']==pid]
     return myline
 
-util.chunker(chunksize,full_essays_path,prep_data)
+chunker(full_essays_path,prep_data,10000)
