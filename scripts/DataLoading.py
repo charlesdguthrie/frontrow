@@ -16,47 +16,6 @@ def getDataFilePath(filename):
     datadir = os.path.join(pardir,"data")
     return os.path.join(datadir,filename)
 
-
-#################### BEGIN CHUNKING (DO NOT USE WHEN DIRECTLY READING TO DF)
-# Generate the data frame by first creating creating an empty data frame
-# and successively append each chunk to it.  To get the headers, grab the
-# column names from a chunk of size 1.
-@timethis
-def LoadByChunking(filename,breakme=False,chunksize=10000,MaxChunks=5,*args,**kwargs):
-	chunksize = 10000
-	essays_labels = pd.read_csv(filename,iterator=True,chunksize=chunksize)
-
-	firstchunk = essays_labels.get_chunk(1)
-	headers = firstchunk.columns
-
-	data_app = pd.DataFrame(columns=headers)
-	data_rej = pd.DataFrame(columns=headers)
-
-    # breakme is used to stop it from iterating through all the chunks when only
-    # small batches sizes are wanted for testing.
-	j = 0
-	for chunk in essays_labels:
-	    data_app = data_app.append(chunk[chunk.got_posted=='t'])
-	    data_rej = data_rej.append(chunk[chunk.got_posted!='t'])
-	    j=j+1
-	    if breakme and j >= MaxChunks:
-		break
-	return data_app,data_rej,headers
-################### END CHUNKING
-
-################### READ DIRECTLY TO DATA FRAME, NO CHUNKING
-@timethis
-def ReadFullCSV(filename,*args,**kwargs):
-    essays_labels = pd.read_csv(filename)
-    headers = essays_labels.columns
-    
-    data_app = essays_labels[essays_labels.got_posted=='t']
-    data_rej = essays_labels[essays_labels.got_posted!='t']
-    
-    return data_app,data_rej,headers
-################### END READ
-    
-    
 def ReviseDataLabels(data_app,data_rej):
     print "Total Approved:",data_app.shape[0]
     print "Total Rejected:",data_rej.shape[0]
@@ -66,20 +25,64 @@ def ReviseDataLabels(data_app,data_rej):
     # many anyway.
     print "Total Approved with Missing Labels:",sum(data_app.got_posted.isnull())
     print "Total Rejected with Missing Labels:",sum(data_rej.got_posted.isnull())
+
     data_app = data_app[data_app.got_posted.isnull()==False]
     data_rej = data_rej[data_rej.got_posted.isnull()==False]
+    print "Records with missing labels REMOVED"    
     
     # change labels to 1 and 0
     print "1 if Rejected, 0 if Approved"
-    data_app = data_app.replace(to_replace={'got_posted':{'t':0,'f':1}})
-    data_rej = data_rej.replace(to_replace={'got_posted':{'t':0,'f':1}})
+    data_app = data_app.replace(to_replace={'got_posted':{'t':1,'f':0}})
+    data_rej = data_rej.replace(to_replace={'got_posted':{'t':1,'f':0}})
     
     return data_app,data_rej
 
-def getChunkedData(filename,breakme=True,MaxChunks=1):
+#################### BEGIN CHUNKING (DO NOT USE WHEN DIRECTLY READING TO DF)
+# Generate the data frame by first creating creating an empty data frame
+# and successively append each chunk to it.  To get the headers, grab the
+# column names from a chunk of size 1.
+@timethis
+def LoadByChunking(filename,label_approved='t',breakme=True,chunksize=10000,MaxChunks=5,*args,**kwargs):
+    chunksize = 10000
+    essays_labels = pd.read_csv(filename,iterator=True,chunksize=chunksize)
+
+    firstchunk = essays_labels.get_chunk(1)
+    headers = firstchunk.columns
+
+    data_app = pd.DataFrame(columns=headers)
+    data_rej = pd.DataFrame(columns=headers)
+    print "label_approved =",label_approved
+    # breakme is used to stop it from iterating through all the chunks when only
+    # small batches sizes are wanted for testing.
+    j = 0
+    for chunk in essays_labels:
+        data_app = data_app.append(chunk[chunk.got_posted==label_approved],ignore_index=True)
+        data_rej = data_rej.append(chunk[chunk.got_posted!=label_approved],ignore_index=True)
+        j=j+1
+        if breakme and j >= MaxChunks:
+            print "delivered",j,"chunks of totaling",j*chunksize,"records"
+            break
+    print "approved:",len(data_app)
+    print "rejected:",len(data_rej)
+    return data_app,data_rej,headers
+
+def getChunkedData(filename,breakme=True,label_approved='t',MaxChunks=1):
     filepath = getDataFilePath(filename)
-    data_app,data_rej,headers = LoadByChunking(filepath,breakme=True,MaxChunks=1)
+    data_app,data_rej,headers = LoadByChunking(filepath,breakme=breakme,label_approved=label_approved,MaxChunks=MaxChunks)
     return ReviseDataLabels(data_app,data_rej)
+################### END CHUNKING    
+
+################### READ DIRECTLY TO DATA FRAME, NO CHUNKING
+@timethis
+def ReadFullCSV(filename,*args,**kwargs):
+    essays_labels = pd.read_csv(filename)
+    headers = essays_labels.columns
+
+    data_app = essays_labels[essays_labels.got_posted==0]
+    data_rej = essays_labels[essays_labels.got_posted!=0]
+    
+    return data_app,data_rej,headers
+################### END READ
     
 def getFullData(filename):
     filepath = getDataFilePath(filename)
@@ -92,8 +95,7 @@ def getFullData(filename):
 #   Chunker reads 'filen' one chunk at a time,
 #   with specified 'chunksize', then feeds
 #   chunk' and 'chunk_id' to function 'func'
-@timethis
-def chunker(filen,func,chunksize=10000):
+def chunker(chunksize,filen,func):
     #read file one chunk at a time
     with open(filen, 'rb') as inf:
         reader = pd.read_csv(inf, delimiter=',', quotechar='"',iterator=True, chunksize=chunksize)
