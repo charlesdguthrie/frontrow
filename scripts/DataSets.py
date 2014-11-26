@@ -18,11 +18,7 @@ def pickleLoad(inputName):
     return pyObj
     
 def ImportPickleBalancedTruncated():
-    filename = "essays_and_labels.csv"
-    data_app,data_rej = GetBalancedDataSet(filename)
-
-    df = pd.concat((data_app,data_rej),ignore_index=True)
-    df = df.reset_index()
+    df = pd.read_csv(getDataFilePath("Merge_2014_11_26.csv"))
     pickleIt(df, 'BalancedTruncated')
     print "Pickle Successful"
 
