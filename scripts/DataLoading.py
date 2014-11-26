@@ -6,7 +6,9 @@ Created on Wed Nov 19 13:19:33 2014
 """
 
 import pandas as pd
+import numpy as np
 from utils import *
+from sklearn.cross_validation import train_test_split
 import os
 
 
@@ -15,6 +17,26 @@ def getDataFilePath(filename):
     pardir = os.path.join(mydir,"..")
     datadir = os.path.join(pardir,"data")
     return os.path.join(datadir,filename)
+
+def GetBalancedDataSet(filename):
+    data_app_raw,data_rej = getChunkedData(filename,breakme=False)
+    
+    n_app = len(data_app_raw)
+    n_rej = len(data_rej)
+    ratio = n_rej*1.0/n_app
+    data_app_train, data_app_ignore = train_test_split(data_app_raw,test_size=1-ratio)
+    data_app = pd.DataFrame(data_app_train,columns=data_app_raw.columns)
+    
+    print "**********************************"
+    print "BALANCED DATA:"
+    print "approved data set:"
+    print "   approved =",np.sum(data_app.got_posted==1)
+    print "   rejected =",np.sum(data_app.got_posted==0)
+    print "rejected data set:"
+    print "   approved =",np.sum(data_rej.got_posted==1)
+    print "   rejected =",np.sum(data_rej.got_posted==0)
+    print "**********************************"
+    return data_app, data_rej
 
 def ReviseDataLabels(data_app,data_rej):
     print "Total Approved:",data_app.shape[0]
@@ -43,7 +65,6 @@ def ReviseDataLabels(data_app,data_rej):
 # column names from a chunk of size 1.
 @timethis
 def LoadByChunking(filename,label_approved='t',breakme=True,chunksize=10000,MaxChunks=5,*args,**kwargs):
-    chunksize = 10000
     essays_labels = pd.read_csv(filename,iterator=True,chunksize=chunksize)
 
     firstchunk = essays_labels.get_chunk(1)
