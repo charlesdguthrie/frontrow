@@ -18,6 +18,7 @@ from sklearn.metrics import roc_curve, auc
 df = pickleLoad("BalancedTruncated")
 X = pickleLoad('BalancedTruncated_Essay_Vectorized')
 Y = pickleLoad('BalancedTruncated_NeedStatement_Vectorized')
+df.got_posted = df.got_posted.replace({'t':1,'f':0})
 
 label = np.array(df.got_posted)
 
