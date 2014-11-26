@@ -7,40 +7,37 @@ from DataLoading import *
 def MergeLabelsAndEssays():
     filename = "essays_and_labels.csv"
     filepath_Labels = getDataFilePath(filename)
-    chunksize = 20000
-    Chunker_Labs = pd.read_csv(filepath_Labels,iterator=True,chunksize=chunksize)          
+    chunksize = 50000
+    Chunker_Labs = pd.read_csv(filepath_Labels,iterator=True,chunksize=chunksize,dtype=unicode)          
     #df = Chunker.get_chunk(chunksize)
-    cols_Labs = ['got_posted','_projectid']
+    cols_Labs = ['got_posted','_projectid','title','essay','need_statement']
     
-    
-    
-    
-    filename = "opendata_essays_2014_11_05.csv"
+    filename = "clean_labeled_project_data.csv"
     filepath = getDataFilePath(filename)
-    chunksize = 20000
-    Chunker_Full = pd.read_csv(filepath,iterator=True,chunksize=chunksize)
-    cols_Full = ['_projectid','_teacher_acctid','title','short_description','need_statement','essay']
+    Chunker_Full = pd.read_csv(filepath,iterator=True,chunksize=1)
+    cols_Full = Chunker_Full.get_chunk(1).columns
+    chunksize = 50000
+    Chunker_Full = pd.read_csv(filepath,iterator=True,chunksize=chunksize,dtype=unicode)
+    #cols_Full = ['_projectid','_teacher_acctid','title','short_description','need_statement','essay']
     #chunk = Chunker.get_chunk(chunksize)
-    
-    
     
     #merged = pd.merge(chunk,df,how='inner',on=["_projectid"])
     j=0
     useheaders = True
     for chunk in Chunker_Full:
         j=j+1
-        print "chunk",j,"of 39"
+        print "chunk",j,"of approx 2"
         
         chunk = chunk[cols_Full]
         chunk._projectid = chunk._projectid.str.replace('"','')
         chunk._teacher_acctid = chunk._teacher_acctid.str.replace('"','')
         
-        Chunker_Labs = pd.read_csv(filepath_Labels,iterator=True,chunksize=chunksize)
+        Chunker_Labs = pd.read_csv(filepath_Labels,iterator=True,chunksize=chunksize,dtype=unicode)
         for df in Chunker_Labs:
             df = df[cols_Labs]
             
             merged = pd.merge(chunk,df,how='inner',on=["_projectid"])
-            with open(getDataFilePath("merged1.csv"),'a') as f:
+            with open(getDataFilePath("Merge_2014_11_26.csv"),'a') as f:
                 merged.to_csv(f,header=useheaders)
             useheaders = False
     
