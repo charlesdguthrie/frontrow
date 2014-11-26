@@ -8,6 +8,21 @@ Created on Wed Nov 19 12:46:28 2014
 from TextProcessing import *
 import textmining
 from utils import *
+from scipy.sparse import hstack
+
+
+def CombineFeatures(FeatureList):
+    # FeatureList must be a list that contains either:
+    # arrays, ndarrays, sparse arrays, or pandas objects
+    FeatureList = FeatureList[:]
+    for i in range(len(FeatureList)):
+        # some arrays are only 1 dimensional, they need to be
+        # 2d for hstack.  So convert.
+        item = FeatureList[i]
+        if(len(item.shape))<=1:
+            FeatureList[i] = np.reshape(item,(-1,1)).shape
+    OutputArray = hstack(FeatureList)
+    return OutputArray
 
 @timethis
 def NLTKfeatures(df,lemmatize=False,*args,**kwargs):
