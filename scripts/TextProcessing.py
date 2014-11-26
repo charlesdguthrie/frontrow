@@ -102,8 +102,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 def tfidf(df_column):
     
+    # Fill missing data by "str" type values. 
+    # Any input must be "str" type. "Nan" is float type. 
     df_column = df_column.fillna('')
     
+    # Preprocessing. Each essay will be replaced by stemmed text data.
     k = 0
     for doc in df_column:
         
@@ -116,13 +119,12 @@ def tfidf(df_column):
         df_column[k] = wordset
         
         k = k + 1
-    
-
+        
+    # Initialize vectorizer
     vectorizer = TfidfVectorizer()
 
     # Create a term document matrix
     x = vectorizer.fit_transform(df_column)
-
 
     return x, vectorizer
     
