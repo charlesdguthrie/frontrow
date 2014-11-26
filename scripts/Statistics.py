@@ -13,9 +13,9 @@ import pandas as pd
 from utils import *
 
 
-def plotROC(fpr,tpr,roc_auc):
+def plotROC(fpr,tpr,roc_auc,title=""):
     plt.figure()
-    plt.plot(fpr,tpr,label="NaiveBayes (AUC = %0.2f)" % roc_auc)
+    plt.plot(fpr,tpr,label=title+" (AUC = %0.2f)" % roc_auc)
     plt.plot([0,1],[0,1],'k--')
     plt.xlim([0.0,1.0])
     plt.ylim([0.0,1.05])
