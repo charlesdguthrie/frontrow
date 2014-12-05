@@ -5,12 +5,15 @@ from DataLoading import *
            
 
 def MergeLabelsAndEssays():
-    filename = "essays_and_labels.csv"
-    filepath_Labels = getDataFilePath(filename)
+    filename = "all_essays.csv"
+    filepath_essays = getDataFilePath(filename)
     chunksize = 50000
-    Chunker_Labs = pd.read_csv(filepath_Labels,iterator=True,chunksize=chunksize,dtype=unicode)          
+    Chunker_essays = pd.read_csv(filepath_essays,iterator=True,chunksize=chunksize,dtype=unicode)          
     #df = Chunker.get_chunk(chunksize)
-    cols_Labs = ['got_posted','_projectid','title','essay','need_statement']
+    
+    #only consider relevant columns
+    cols_essays = ['_projectid', 'title', 'short_description', 'need_statement', 'essay']
+
     
     filename = "clean_labeled_project_data.csv"
     filepath = getDataFilePath(filename)
@@ -21,7 +24,7 @@ def MergeLabelsAndEssays():
     #cols_Full = ['_projectid','_teacher_acctid','title','short_description','need_statement','essay']
     #chunk = Chunker.get_chunk(chunksize)
     
-    #merged = pd.merge(chunk,df,how='inner',on=["_projectid"])
+    #loop through chunks in metadata, then within each chunk, loop through chunks of essay data and merge
     j=0
     useheaders = True
     for chunk in Chunker_Full:
@@ -29,17 +32,21 @@ def MergeLabelsAndEssays():
         print "chunk",j,"of approx 2"
         
         chunk = chunk[cols_Full]
+
         chunk._projectid = chunk._projectid.str.replace('"','')
         chunk._teacher_acctid = chunk._teacher_acctid.str.replace('"','')
         
-        Chunker_Labs = pd.read_csv(filepath_Labels,iterator=True,chunksize=chunksize,dtype=unicode)
-        for df in Chunker_Labs:
-            df = df[cols_Labs]
+        Chunker_essays = pd.read_csv(filepath_essays,iterator=True,chunksize=chunksize,dtype=unicode)
+        for df in Chunker_essays:
+            df = df[cols_essays]
+            df._projectid = df._projectid.str.replace('"','')
             
             merged = pd.merge(chunk,df,how='inner',on=["_projectid"])
             with open(getDataFilePath("Merge_2014_11_26.csv"),'a') as f:
-                merged.to_csv(f,header=useheaders)
+                merged.to_csv(f,header=useheaders, index=False)
             useheaders = False
+
+MergeLabelsAndEssays()
     
     
 def CountFullEssaysDataSet():   
