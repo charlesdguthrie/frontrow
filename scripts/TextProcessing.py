@@ -128,4 +128,61 @@ def tfidf(df_column):
     x = vectorizer.fit_transform(df_column)
 
     return x, vectorizer
+   
+###################################################################################################   
     
+from sklearn.feature_extraction.text import CountVectorizer
+
+###Inputs and Outputs###
+#  df_column   'pandas.core.series.Series' of 'str' type
+#  method      'vect' option returns TFIDF matrix and vectorizer (default)
+#              'count' option returns term frequency matrix and feature names  
+def tfidf_2(df_column, method = 'vect'):
+    
+    # Fill missing data by "str" type values.
+    # Any input must be "str" type. "Nan" is float type. 
+    df_column = df_column.fillna('')
+    
+    k = 0
+    
+    # Preprocessing. Each essay will be replaced by stemmed text data.
+    for doc in df_column:
+        
+        words = RemoveSymbolsAndSpecial(doc)
+        wordset = get_wordset(words)
+        wordset = RemoveStopsSymbols(wordset)
+        wordset = stemming(wordset)
+        wordset = ' '.join(wordset)
+        
+        df_column[k] = wordset
+        
+        k = k + 1
+    
+        
+    # Initialize vectorizer
+    if method == 'vect':
+        vectorizer = TfidfVectorizer()
+    elif method == 'count':
+        vectorizer = CountVectorizer()
+    else:
+        print 'Error: Please choose a right method'
+        return
+
+    # Create a term document matrix
+    x = vectorizer.fit_transform(df_column)
+    
+    if method == 'vect': 
+        return x, vectorizer
+    else:
+        # Get feature names
+        feature_names = vectorizer.get_feature_names()
+        return x, feature_names
+    
+###Inputs and Outputs###  
+#  x               'scipy.sparse.csc.csc_matrix' created by 'tfidf' method
+#  feature_names   feature names created by 'tfidf' method. Data type should be 'list'
+def sparse_to_DF(x, feature_names):
+    
+    # Create a Pandas DataFrame
+    # x.A convert 'scipy.sparse.csc.csc_matrix' to 'numpy.ndarray'
+    return pd.DataFrame(x.A, columns = feature_names)
