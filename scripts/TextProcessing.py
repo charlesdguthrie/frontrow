@@ -118,7 +118,8 @@ def tfidf(df_column):
         wordset = ' '.join(wordset)
         
         df_column[k] = wordset
-        print "preprocessing column " ,k, " of ", totalk
+        if k%10000 == 0:
+            print "preprocessing column " ,k, " of ", totalk
         k = k + 1
         
     # Initialize vectorizer

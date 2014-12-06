@@ -17,12 +17,11 @@ print "reading resultant_merge.csv..."
 rawdf = pd.read_csv(filen)
 print "read complete"
 
-df = cleanData(rawdf)
 
-#second argument is the approval-to-rejection ratio.  1 produces a 50-50 split
 
 print "Cleaning resultant merge..."
-dsdf = downSample(df, 1)
+df = cleanData(rawdf)
+dsdf = downSample(df, 1) #second argument is the approval-to-rejection ratio.  1 produces a 50-50 split
 dsdfSummary = getSummary(dsdf)
 dsdfSummary.to_csv('../data/summary_stats.csv', index=True)
 dsdf.to_csv('../data/clean_labeled_project_data.csv', index=False)

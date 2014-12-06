@@ -1,5 +1,7 @@
 import pandas as pd
 from DataLoading import *
+import os
+
 #from sqlalchemy import create_engine
 
            
@@ -7,6 +9,7 @@ from DataLoading import *
 def MergeLabelsAndEssays():
     filename = "all_essays.csv"
     outFileName = "Merge_2014_12_05.csv"
+    outFilePath = getDataFilePath(outFileName)
     filepath_essays = getDataFilePath(filename)
     chunksize = 50000
     Chunker_essays = pd.read_csv(filepath_essays,iterator=True,chunksize=chunksize,dtype=unicode)          
@@ -15,10 +18,9 @@ def MergeLabelsAndEssays():
     cols_essays = ['_projectid', 'title', 'short_description', 'need_statement', 'essay']
 
     #erase output file
+    if (os.path.exists(outFilePath)):
+        os.remove(outFilePath)
 
-    f = open(outFileName, 'w')
-    print "erasing ",outFileName
-    
     filename = "clean_labeled_project_data.csv"
     filepath = getDataFilePath(filename)
     Chunker_Full = pd.read_csv(filepath,iterator=True,chunksize=1)
@@ -44,7 +46,7 @@ def MergeLabelsAndEssays():
             df._projectid = df._projectid.str.replace('"','')
             
             merged = pd.merge(chunk,df,how='inner',on=["_projectid"])
-            with open(getDataFilePath(outFileName),'a') as f:
+            with open(outFilePath,'a') as f:
                 merged.to_csv(f,header=useheaders, index=False)
             useheaders = False    
     

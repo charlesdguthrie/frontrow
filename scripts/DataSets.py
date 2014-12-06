@@ -29,7 +29,9 @@ def ImportPickleBalancedFull():
 
 def PickleVectorized():
     df = pickleLoad('BalancedFull')
+    print "vectorizing essays..."
     X,_ = tfidf(df['essay'])
+    print "vectorizing need statements..."
     Y,_ = tfidf(df['need_statement'])
     pickleIt(X, 'BalancedFull_Essay_Vectorized')
     pickleIt(Y, 'BalancedFull_NeedStatement_Vectorized')
