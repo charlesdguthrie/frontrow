@@ -42,7 +42,7 @@ def MergeLabelsAndEssays():
             df._projectid = df._projectid.str.replace('"','')
             
             merged = pd.merge(chunk,df,how='inner',on=["_projectid"])
-            with open(getDataFilePath("Merge_2014_11_26.csv"),'a') as f:
+            with open(getDataFilePath("Merge_2014_12_05.csv"),'a') as f:
                 merged.to_csv(f,header=useheaders, index=False)
             useheaders = False    
     
