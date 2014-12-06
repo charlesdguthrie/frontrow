@@ -1,28 +1,32 @@
 import pandas as pd
 from DataLoading import *
+import os
+
 #from sqlalchemy import create_engine
 
            
 
 def MergeLabelsAndEssays():
     filename = "all_essays.csv"
+    outFileName = "Merge_2014_12_05.csv"
+    outFilePath = getDataFilePath(outFileName)
     filepath_essays = getDataFilePath(filename)
     chunksize = 50000
     Chunker_essays = pd.read_csv(filepath_essays,iterator=True,chunksize=chunksize,dtype=unicode)          
-    #df = Chunker.get_chunk(chunksize)
     
     #only consider relevant columns
     cols_essays = ['_projectid', 'title', 'short_description', 'need_statement', 'essay']
 
-    
+    #erase output file
+    if (os.path.exists(outFilePath)):
+        os.remove(outFilePath)
+
     filename = "clean_labeled_project_data.csv"
     filepath = getDataFilePath(filename)
     Chunker_Full = pd.read_csv(filepath,iterator=True,chunksize=1)
     cols_Full = Chunker_Full.get_chunk(1).columns
     chunksize = 50000
     Chunker_Full = pd.read_csv(filepath,iterator=True,chunksize=chunksize,dtype=unicode)
-    #cols_Full = ['_projectid','_teacher_acctid','title','short_description','need_statement','essay']
-    #chunk = Chunker.get_chunk(chunksize)
     
     #loop through chunks in metadata, then within each chunk, loop through chunks of essay data and merge
     j=0
@@ -42,7 +46,7 @@ def MergeLabelsAndEssays():
             df._projectid = df._projectid.str.replace('"','')
             
             merged = pd.merge(chunk,df,how='inner',on=["_projectid"])
-            with open(getDataFilePath("Merge_2014_12_05.csv"),'a') as f:
+            with open(outFilePath,'a') as f:
                 merged.to_csv(f,header=useheaders, index=False)
             useheaders = False    
     
