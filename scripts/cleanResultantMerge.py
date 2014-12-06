@@ -7,8 +7,6 @@ Created on Sun Nov 23
 import pandas as pd
 import numpy as np
 
-filen = "../data/resultant_merge.csv"
-rawdf = pd.read_csv(filen)
 
 '''
 replace blank strings with nulls
@@ -52,7 +50,7 @@ def cleanData(rawdf):
     #Drop duplicates
     df = df.drop_duplicates()
     return df
-    
+
 '''
 bring ratio of approvals:rejections down to desired level
 '''
@@ -75,8 +73,9 @@ def getSummary(df):
     uniqueList = []
     typeList = []
     valueList = []
+    iList = []
     
-    for col in df.columns:
+    for i,col in enumerate(df.columns):
         uniques = len(df[col][df[col].notnull()].unique())
         uniqueList.append(uniques)
         if(uniques>100):
@@ -85,26 +84,30 @@ def getSummary(df):
             values = df[col].value_counts().iloc[:10]
         valueList.append(values)
         typeList.append(np.dtype(df[col]))
+        iList.append(i)
         
     uniqueSeries = pd.Series(uniqueList, index=df.columns)
     valueSeries = pd.Series(valueList, index=df.columns)
     typeSeries = pd.Series(typeList, index=df.columns)
+    iSeries = pd.Series(iList,index=df.columns)
     
     #uniques
     summaryItems = [
         ('nulls', df.shape[0] - df.count()),
         ('distinct_count', uniqueSeries),
         ('top10Values', valueSeries),
-        ('dtype', typeSeries)
+        ('dtype', typeSeries),
+        ('i', iSeries)
     ]
     summaryDF = pd.DataFrame.from_items(summaryItems)
     print 'Rows,Columns',df.shape
     return summaryDF
 
 
-
-df = cleanData(rawdf)
-dsdf = downSample(df, 3)
-dsdfSummary = getSummary(dsdf)
-dsdfSummary.to_csv('../data/summary_stats.csv', index=False)
-dsdf.to_csv('../data/clean_labeled_project_data.csv', index=False)
+# filen = "../data/resultant_merge.csv"
+# rawdf = pd.read_csv(filen)
+# df = cleanData(rawdf)
+# dsdf = downSample(df, 3)
+# dsdfSummary = getSummary(dsdf)
+# dsdfSummary.to_csv('../data/summary_stats.csv', index=False)
+# dsdf.to_csv('../data/clean_labeled_project_data.csv', index=False)

@@ -44,10 +44,7 @@ def MergeLabelsAndEssays():
             merged = pd.merge(chunk,df,how='inner',on=["_projectid"])
             with open(getDataFilePath("Merge_2014_11_26.csv"),'a') as f:
                 merged.to_csv(f,header=useheaders, index=False)
-            useheaders = False
-
-MergeLabelsAndEssays()
-    
+            useheaders = False    
     
 def CountFullEssaysDataSet():   
     filename = "opendata_essays_2014_11_05.csv"

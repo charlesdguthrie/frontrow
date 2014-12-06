@@ -15,9 +15,9 @@ from sklearn.metrics import roc_curve, auc
 
 
 
-df = pickleLoad("BalancedTruncated")
-X = pickleLoad('BalancedTruncated_Essay_Vectorized')
-Y = pickleLoad('BalancedTruncated_NeedStatement_Vectorized')
+df = pickleLoad("BalancedFull")
+X = pickleLoad('BalancedFull_Essay_Vectorized')
+Y = pickleLoad('BalancedFull_NeedStatement_Vectorized')
 df.got_posted = df.got_posted.replace({'t':1,'f':0})
 
 label = np.array(df.got_posted)
@@ -41,8 +41,10 @@ fpr,tpr,_ = roc_curve(y_true=y_test,y_score=probs[:,1])
 roc_auc = auc(fpr,tpr)
 plotROC(fpr,tpr,roc_auc,"LogReg")
 
+'''
 clf = svm.LinearSVC().fit(f_train, y_train)
 probs = clf.decision_function(f_test)
 fpr,tpr,_ = roc_curve(y_true=y_test,y_score=probs)
 roc_auc = auc(fpr,tpr)
 plotROC(fpr,tpr,roc_auc,"LinSVM")
+'''
