@@ -53,7 +53,7 @@ def containsDollarSign(df_column,boolean=True):
     if boolean:
         return np.array(['$' in words for words in df_column.fillna('')])
     else:
-        return np.array(['$' in words for words in df_column.fillna('')])
+        return np.array([words.count('$') for words in df_column.fillna('')])
         
 def containsEmailAddress(df_column):
     return np.array(['@' in words for words in df_column.fillna('')])
@@ -62,18 +62,20 @@ def containsURL(df_column):
     def findURL1(words):
         return len(re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', words))>0
     def findURL2(words):
-        return 'www.' in words or '.com' in words or '.org' in words or 'htm' in words
+        return 'www.' in words or '.com' in words or '.org' in words or 'htm' in words or '.edu' in words 
     return np.array([findURL1(words) or findURL2(words) for words in df_column.fillna('')])
 
 essays = df.essay.copy()
 shouting = pd.DataFrame(ShoutingCount(essays),columns=['totalcaps','max_consecutive_caps'])
-dollar = containsDollarSign(essays)
+dollarbool = containsDollarSign(essays)
+dollarcount = containsDollarSign(essays,boolean=False)
 email = containsEmailAddress(essays)
 urls = containsURL(essays)
 
 maxcaps = pd.Series(shouting[:,1])
 totalcaps = pd.Series(shouting[:,0])
-dollars_ser = pd.Series(dollar)
+dollarbool_ser = pd.Series(dollarbool)
+dollarcount_ser = pd.Series(dollarcount)
 email_ser = pd.Series(email)
 urls_ser = pd.Series(urls)
                 
@@ -133,7 +135,8 @@ def makebarplot(series,df,title=""):
 
 maxcaps_df = makehist(maxcaps,df,mincount=4,title="Max consecutive capitilized letters")
 bins = [0,4,8,20,500]
-totalcaps_df = makehist(totalcaps,df,mincount=0,bins=bins,title="total # capitilized letters")
-makebarplot(dollars_ser,df,title="$ present")
+totalcaps_df = makehist(totalcaps,df,mincount=1,title="total # capitilized letters")
+dollarcount_df = makehist(dollarcount_ser,df,mincount=1,title="total # '$'")
+makebarplot(dollarbool_ser,df,title="$ present")
 makebarplot(email_ser,df,title="@ present")
 makebarplot(urls_ser,df,title="url present")
