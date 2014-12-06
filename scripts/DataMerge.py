@@ -18,7 +18,6 @@ def MergeLabelsAndEssays():
 
     f = open(outFileName, 'w')
     print "erasing ",outFileName
-    print f
     
     filename = "clean_labeled_project_data.csv"
     filepath = getDataFilePath(filename)

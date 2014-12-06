@@ -108,6 +108,7 @@ def tfidf(df_column):
     
     # Preprocessing. Each essay will be replaced by stemmed text data.
     k = 0
+    totalk = len(df_column)
     for doc in df_column:
         
         words = RemoveSymbolsAndSpecial(doc)
@@ -117,7 +118,7 @@ def tfidf(df_column):
         wordset = ' '.join(wordset)
         
         df_column[k] = wordset
-        
+        print "preprocessing column " ,k, " of ", totalk
         k = k + 1
         
     # Initialize vectorizer
