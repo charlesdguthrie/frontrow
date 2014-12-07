@@ -234,3 +234,57 @@ def termdocumentmatrix(df_column, preprocess = True):
     # matrix.write_csv('test_term_matrix.csv', cutoff=1)
     
     return df
+    
+    
+    ### Inputs ###  
+#  df        'pandas.core.series.Series'
+#  column1    column name (e.g. 'essay', 'need_statement'...)
+#  column2    column name (e.g. 'essay', 'need_statement'...)
+#
+### Outputs ###
+#  df         new dataframe ('misspelling_...' column added)
+#
+def addCommonWordsCol(df, column1 = 'essay', column2 = 'need_statement'):
+    
+    # Count the number of rowa
+    num_of_rows = len(df[column1])
+    
+    # Fill missing data by "str" type values.
+    # Any input must be "str" type. "Nan" is float type. 
+    df[column1] = df[column1].fillna('')
+    df[column2] = df[column2].fillna('')
+    
+    # Create a new column of misspelling count 
+    new_column = pd.Series(index = list(df.index))
+    
+    # Add values to the new column
+    k = 0
+    for k in range(num_of_rows):
+        
+            new_column[k] = countCommonWords(df[column1][k], df[column2][k])
+            k = k + 1
+        
+    # Add the new column to the original dataframe
+    df['common_words (' + column1 + '&' + column2 + ')'] = new_column
+    
+    return df
+
+
+
+### Inputs ###  
+#  doc1               'str' type
+#  doc2               'str' type
+#
+### Outputs ###
+#  len(common)         The number of common words
+#  
+def countCommonWords(doc1, doc2):
+    
+    # Split string into words
+    doc1_words = doc1.split()
+    doc2_words = doc2.split()
+    
+    # Find common words
+    common = set(doc1_words).intersection(set(doc2_words))
+    
+    return len(common)
