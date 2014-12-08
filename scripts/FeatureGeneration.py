@@ -27,8 +27,10 @@ def CombineFeatures(FeatureList):
         item = FeatureList[i]
         if(len(item.shape))<=1:
             FeatureList[i] = np.reshape(item,(-1,1)).shape
-    OutputArray = hstack(FeatureList)
-    return OutputArray
+
+    print FeatureList
+    #OutputArray = hstack(FeatureList)
+    #return OutputArray
 
     
 def missingFieldIndicator(df):
