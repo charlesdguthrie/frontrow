@@ -6,50 +6,82 @@ import os
 
            
 
-def MergeLabelsAndEssays():
-    filename = "all_essays.csv"
-    outFileName = "Merge_2014_12_05.csv"
+def MergeToFull(extractFileName, fullDf, outFileName, extractedCols):
+
+    # extractFileName = "all_essays.csv"
+    # fullFileName= "clean_labeled_project_data.csv"
+    # outFileName = "data_and_essays.csv"
+    # extractedCols = ['_projectid', 'title', 'short_description', 'need_statement', 'essay']
+
+    #get file paths
+    filepath = getDataFilePath(extractFileName)
     outFilePath = getDataFilePath(outFileName)
-    filepath_essays = getDataFilePath(filename)
-    chunksize = 50000
-    Chunker_essays = pd.read_csv(filepath_essays,iterator=True,chunksize=chunksize,dtype=unicode)          
-    
-    #only consider relevant columns
-    cols_essays = ['_projectid', 'title', 'short_description', 'need_statement', 'essay']
 
     #erase output file
     if (os.path.exists(outFilePath)):
         os.remove(outFilePath)
 
-    filename = "clean_labeled_project_data.csv"
-    filepath = getDataFilePath(filename)
-    Chunker_Full = pd.read_csv(filepath,iterator=True,chunksize=1)
-    cols_Full = Chunker_Full.get_chunk(1).columns
     chunksize = 50000
-    Chunker_Full = pd.read_csv(filepath,iterator=True,chunksize=chunksize,dtype=unicode)
+    
+    #loop through chunks of essay data and merge
+    useheaders = True
+        
+    chunker = pd.read_csv(filepath,iterator=True,chunksize=chunksize,dtype=unicode)
+    for chunk in chunker:
+        chunk = chunk[extractedCols]
+        chunk._projectid = chunk._projectid.str.replace('"','')
+        
+        merged = pd.merge(fullDf,chunk,how='inner',on=["_projectid"])
+        with open(outFilePath,'a') as f:
+            merged.to_csv(f,header=useheaders, index=False)
+        useheaders = False    
+
+def MergeLabelsAndEssays(extractFileName, fullFileName, outFileName, extractedCols):
+
+    # extractFileName = "all_essays.csv"
+    # fullFileName= "clean_labeled_project_data.csv"
+    # outFileName = "data_and_essays.csv"
+    # extractedCols = ['_projectid', 'title', 'short_description', 'need_statement', 'essay']
+
+    #get file paths
+    filepath = getDataFilePath(extractFileName)
+    fullFilePath = getDataFilePath(fullFileName)
+    outFilePath = getDataFilePath(outFileName)
+
+    #erase output file
+    if (os.path.exists(outFilePath)):
+        os.remove(outFilePath)
+
+    chunksize = 50000
+        
+    #get columns from full file
+    fullChunker = pd.read_csv(fullFilePath,iterator=True,chunksize=1)
+    fullCols = fullChunker.get_chunk(1).columns
+
+    #ok real chunker this time
+    fullChunker = pd.read_csv(fullFilePath,iterator=True,chunksize=chunksize,dtype=unicode)
     
     #loop through chunks in metadata, then within each chunk, loop through chunks of essay data and merge
     j=0
     useheaders = True
-    for chunk in Chunker_Full:
+    for chunk in fullChunker:
         j=j+1
         print "chunk",j,"of approx 2"
         
-        chunk = chunk[cols_Full]
-
-        chunk._projectid = chunk._projectid.str.replace('"','')
-        chunk._teacher_acctid = chunk._teacher_acctid.str.replace('"','')
+        #make sure to not exceed starting columns
+        chunk = chunk[fullCols]
         
-        Chunker_essays = pd.read_csv(filepath_essays,iterator=True,chunksize=chunksize,dtype=unicode)
-        for df in Chunker_essays:
-            df = df[cols_essays]
+        chunker = pd.read_csv(filepath_essays,iterator=True,chunksize=chunksize,dtype=unicode)
+        for df in chunker:
+            df = df[extractedCols]
             df._projectid = df._projectid.str.replace('"','')
             
             merged = pd.merge(chunk,df,how='inner',on=["_projectid"])
             with open(outFilePath,'a') as f:
                 merged.to_csv(f,header=useheaders, index=False)
-            useheaders = False    
-    
+            useheaders = False     
+
+
 def CountFullEssaysDataSet():   
     filename = "opendata_essays_2014_11_05.csv"
     filepath = getDataFilePath(filename)

@@ -19,6 +19,11 @@ eliminate too-recent data after 10/31
 def cleanData(rawdf):
     df=rawdf
     
+    #remove quotes from project id, teacher id, school id
+    df._projectid = df._projectid.str.replace('"','')
+    df._teacher_acctid = df._teacher_acctid.str.replace('"','')
+    df._schoolid = df._schoolid.str.replace('"','')
+
     #Replace blank strings with nulls
     df.replace("",np.nan, inplace=True)
     
@@ -65,6 +70,20 @@ def downSample(df, app_rej_ratio):
     outdf = rej.append(DownSample, ignore_index=True)
     #outdf.drop_duplicates(inplace=True)
     return outdf
+
+def filterDates(df):
+    return df[(df.created_date>='2008-01-01') & (df.created_date<'2014-10-31') & (pd.notnull(df.created_date))]
+
+def splitOnDateAndDownSample(df,myDate):
+    df2 = df
+    df2['train']=np.where(df2.created_date<myDate,1,0)
+    train = df2[df2.train==1]
+    test = df2[df2.train==0]
+    trainds = downSample(train,1)
+    testds = downSample(test,1)
+
+    return pd.concat([trainds,testds],axis=0, ignore_index=True)
+
 
 '''
 get number of nulls, number of unique values, and ten most common values

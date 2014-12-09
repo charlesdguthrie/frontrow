@@ -22,8 +22,8 @@ def pickleLoad(inputName):
     pyObj = pickle.load(pk1_file)
     return pyObj
     
-def ImportPickleBalancedFull():
-    df = pd.read_csv(getDataFilePath("Merge_2014_12_05.csv"))
+def ImportPickleBalancedFull(df):
+    #df = pd.read_csv(getDataFilePath(infile))
     pickleIt(df, 'BalancedFull')
     print "Pickle Successful"
 
