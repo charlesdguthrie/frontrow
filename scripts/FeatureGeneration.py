@@ -16,23 +16,55 @@ from TextProcessing import *
 from utils import *
 from scipy.sparse import hstack
 
-
-def CombineFeatures(FeatureList):
-    # FeatureList must be a list that contains either:
-    # arrays, ndarrays, sparse arrays, or pandas objects
+def CombineDense(FeatureList,headers=[],dataframe=True):
+    # FeatureList cannot contain sparse matrices, and must contain
+    # arrays, ndarrays, or pandas objects
     FeatureList = FeatureList[:]
     for i in range(len(FeatureList)):
         # some arrays are only 1 dimensional, they need to be
         # 2d for hstack.  So convert.
         item = FeatureList[i]
         if(len(item.shape))<=1:
-            FeatureList[i] = np.reshape(item,(-1,1)).shape
+            FeatureList[i] = np.matrix(item).T
+            #print np.rank(np.matrix(item).T)
 
-    print FeatureList
-    #OutputArray = hstack(FeatureList)
-    #return OutputArray
-
+    OutputArray = np.hstack(FeatureList)
+    if dataframe == True:
+        if len(headers)>0:
+            return pd.DataFrame(OutputArray,columns=headers)
+        else:
+            return pd.DataFrame(OutputArray)
+    else:
+        return np.array(OutputArray)
+        
+def CombineFeatures(FeatureList):
+    # FeatureList must be a list that contains either:
+    # arrays, ndarrays, sparse arrays, or pandas objects
+    FeatureList = FeatureList[:]
+    foundsparse = False
+    DenseFeatures = []
+    SparseFeatures = []
+    for i in range(len(FeatureList)):
+        item = FeatureList[i]
+        
+        if type(item) == scipy.sparse.coo_matrix:
+            foundsparse = True
+            SparseFeatures.append(item)
+        else:
+            DenseFeatures.append(item)
+        # some arrays are only 1 dimensional, they need to be
+        # 2d for hstack.  So convert.
     
+    DenseArray = CombineDense(DenseFeatures,dataframe=False)
+    if len(SparseFeatures) > 0:
+        OutputArray = hstack((DenseArray,SparseFeatures))
+    else:
+        OutputArray = DenseArray
+    return OutputArray
+
+
+
+
 def missingFieldIndicator(df):
     df2 = df
     for col in ['title','short_description','need_statement','essay']:
@@ -91,14 +123,14 @@ def getEssayFeatures(df):
     email = containsEmailAddress(essays)
     urls = containsURL(essays)
 
-    maxcaps = pd.Series(shouting.iloc[:,1])
-    totalcaps = pd.Series(shouting.iloc[:,0])
+    maxcaps = shouting.max_consecutive_caps
+    totalcaps = shouting.totalcaps
     dollarbool_ser = pd.Series(dollarbool)
     dollarcount_ser = pd.Series(dollarcount)
     email_ser = pd.Series(email)
     urls_ser = pd.Series(urls)
 
-    return CombineFeatures([df,essay_len, maxcaps,totalcaps, dollarbool_ser,dollarcount_ser, email_ser, urls_ser])
+    return CombineFeatures([essay_len, maxcaps,totalcaps, dollarbool_ser,dollarcount_ser, email_ser, urls_ser])
 
 #get essay character count
 def essayCharCount(df_column):
