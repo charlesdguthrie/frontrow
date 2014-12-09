@@ -44,21 +44,19 @@ def CombineDense(FeatureList,headers=[],dataframe=True):
         
 def CombineFeatures(FeatureList):
     # FeatureList must be a list that contains either:
-    # arrays, ndarrays, sparse arrays, or pandas objects
+    # arrays, matrix, ndarrays, sparse arrays, or pandas objects
     #
     # Return types:
     #   sparse matrix (coo_matrix) ---> if FeatureList contains a sparse matrix
     #   numpy array ---> if FeatureList does not contain a sparse matrix
     #
     FeatureList = FeatureList[:]
-    foundsparse = False
     DenseFeatures = []
     SparseFeatures = []
     for i in range(len(FeatureList)):
         item = FeatureList[i]
         
         if type(item) == scipy.sparse.coo_matrix:
-            foundsparse = True
             SparseFeatures.append(item)
         else:
             DenseFeatures.append(item)
