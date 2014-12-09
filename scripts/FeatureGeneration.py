@@ -19,6 +19,11 @@ from scipy.sparse import hstack
 def CombineDense(FeatureList,headers=[],dataframe=True):
     # FeatureList cannot contain sparse matrices, and must contain
     # arrays, ndarrays, or pandas objects
+    #
+    # Return types:
+    #   - dataframe = True   --->   (default) dataframe with headers (empty by default)
+    #   - dataframe = False  --->   numpy array
+    #
     FeatureList = FeatureList[:]
     for i in range(len(FeatureList)):
         # some arrays are only 1 dimensional, they need to be
@@ -40,6 +45,11 @@ def CombineDense(FeatureList,headers=[],dataframe=True):
 def CombineFeatures(FeatureList):
     # FeatureList must be a list that contains either:
     # arrays, ndarrays, sparse arrays, or pandas objects
+    #
+    # Return types:
+    #   sparse matrix (coo_matrix) ---> if FeatureList contains a sparse matrix
+    #   numpy array ---> if FeatureList does not contain a sparse matrix
+    #
     FeatureList = FeatureList[:]
     foundsparse = False
     DenseFeatures = []
