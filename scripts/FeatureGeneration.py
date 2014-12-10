@@ -8,13 +8,7 @@ Created on Wed Nov 19 12:46:28 2014
 from TextProcessing import *
 import textmining
 from utils import *
-from scipy.sparse import hstack
-
-
-from TextProcessing import *
-#import textmining
-from utils import *
-from scipy.sparse import hstack
+from scipy.sparse import coo_matrix
 
 def CombineDense(FeatureList,headers=[],dataframe=True):
     # FeatureList cannot contain sparse matrices, and must contain
@@ -57,7 +51,7 @@ def CombineFeatures(FeatureList):
     for i in range(len(FeatureList)):
         item = FeatureList[i]
         
-        if type(item) == scipy.sparse.coo_matrix:
+        if type(item) == coo_matrix:
             foundsparse = True
             SparseFeatures.append(item)
         else:
@@ -85,7 +79,7 @@ def missingFieldIndicator(df):
     return df2
 
 
-#drop columns that are not useful for model
+#drop string columns and columns that are not useful for model
 def dropFeatures(df):
     df2 = df
     cols_to_drop = [
@@ -94,7 +88,7 @@ def dropFeatures(df):
     'school_city', 'school_zip', 'school_district', 'school_county', 
     'title', 'short_description', 'need_statement', 'essay', 
     'school_zip_mv', 'school_ncesid_mv', 'school_district_mv', 'school_county_mv',
-    'fulfillment_labor_materials'
+    'fulfillment_labor_materials','created_date'
     ]
 
     return df2.drop(cols_to_drop, axis=1)
@@ -140,7 +134,9 @@ def getEssayFeatures(df):
     email_ser = pd.Series(email)
     urls_ser = pd.Series(urls)
 
-    return CombineFeatures([essay_len, maxcaps,totalcaps, dollarbool_ser,dollarcount_ser, email_ser, urls_ser])
+    headers = ['essay_len','maxcaps','totalcaps','dollarbool','dollarcount','email','urls']
+    featArray = CombineFeatures([essay_len, maxcaps,totalcaps, dollarbool_ser,dollarcount_ser, email_ser, urls_ser])
+    return headers, featArray
 
 #get essay character count
 def essayCharCount(df_column):
@@ -186,19 +182,6 @@ def containsURL(df_column):
     def findURL2(words):
         return 'www.' in words or '.com' in words or '.org' in words or 'htm' in words or '.edu' in words 
     return np.array([findURL1(words) or findURL2(words) for words in df_column.fillna('')])
-
-def CombineFeatures(FeatureList):
-    # FeatureList must be a list that contains either:
-    # arrays, ndarrays, sparse arrays, or pandas objects
-    FeatureList = FeatureList[:]
-    for i in range(len(FeatureList)):
-        # some arrays are only 1 dimensional, they need to be
-        # 2d for hstack.  So convert.
-        item = FeatureList[i]
-        if(len(item.shape))<=1:
-            FeatureList[i] = np.reshape(item,(-1,1)).shape
-    OutputArray = hstack(FeatureList)
-    return OutputArray
 
 @timethis
 def NLTKfeatures(df,lemmatize=False,*args,**kwargs):
