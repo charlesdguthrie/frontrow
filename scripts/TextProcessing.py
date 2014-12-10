@@ -100,7 +100,7 @@ def get_wordnet_pos(tagged):
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-def tfidf(df_column):
+def tfidf_old(df_column):
     
     # Fill missing data by "str" type values. 
     # Any input must be "str" type. "Nan" is float type. 
@@ -138,7 +138,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 #  df_column   'pandas.core.series.Series' of 'str' type
 #  method      'vect' option returns TFIDF matrix and vectorizer (default)
 #              'count' option returns term frequency matrix and feature names  
-def tfidf_2(df_column, method = 'vect'):
+def tfidf(df_column, method = 'vect'):
     
     # Fill missing data by "str" type values.
     # Any input must be "str" type. "Nan" is float type. 
