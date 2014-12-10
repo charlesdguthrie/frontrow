@@ -8,7 +8,7 @@ Created on Wed Nov 19 12:46:28 2014
 from TextProcessing import *
 import textmining
 from utils import *
-from scipy.sparse import coo_matrix
+from scipy.sparse import hstack
 
 def CombineDense(FeatureList,headers=[],dataframe=True):
     # FeatureList cannot contain sparse matrices, and must contain
@@ -49,13 +49,7 @@ def CombineFeatures(FeatureList):
     SparseFeatures = []
     for i in range(len(FeatureList)):
         item = FeatureList[i]
-        
-<<<<<<< HEAD
-        if type(item) == coo_matrix:
-            foundsparse = True
-=======
         if type(item) == scipy.sparse.coo_matrix:
->>>>>>> ee43cb4d2025c722de8f6354a458bdf92ed1edf6
             SparseFeatures.append(item)
         else:
             DenseFeatures.append(item)
