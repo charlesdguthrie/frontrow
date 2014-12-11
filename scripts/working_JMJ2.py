@@ -19,33 +19,12 @@ from sklearn.preprocessing import normalize
 
 
 # LOAD DATA
-essaywords = ds.pickleLoad('EssayWords')
-essayvect = ds.pickleLoad('BalancedFull_Essay_Vectorized')
+#essaywords = ds.pickleLoad('EssayWords')
+#essayvect = ds.pickleLoad('BalancedFull_Essay_Vectorized')
 #needwords = ds.pickleLoad('EssayWords')
 #needvect = ds.pickleLoad('BalancedFull_Essay_Vectorized')
-df = ds.pickleLoad('BalancedFull')
+dense_df,train,rejected,summary,sparsefeatures,sparseheaders = ds.pickleLoad('FeatureSet_A')
 
-# FEATURE SET 1
-denseheaders,densefeatures = fg.getEssayFeatures(df)
-densefeatures[np.isnan(densefeatures)]=0
-
-# FEATURE SET 2
-df2 = fg.missingFieldIndicator(df)
-df2 = fg.dropFeatures(df2)
-df2 = fg.createDummies(df2)
-df2 = fg.replaceNansWithMean(df2)
-
-# ENTIRE DENSE FEATURE SET
-densefeatures2 = np.hstack((densefeatures,df2))
-dense_df_headers = denseheaders+list(df2.columns)
-dense_df = pd.DataFrame(densefeatures2,columns = dense_df_headers)
-rejected = dense_df.pop('rejected')
-
-# GET SUMMARY STATS
-summary = crm.getSummary(dense_df,rejected)
-dense_df = dense_df.loc[:,summary.distinct_count>1] #remove cols with only 1 distinct value
-summary = crm.getSummary(dense_df,rejected)
-summary = summary[summary.index != 'rejected']
 
 # NORMALIZE
 binary_col_selector = summary.distinct_count == 2
@@ -54,10 +33,6 @@ binary_cols = dense_df.loc[:,binary_col_selector]
 nonbinary_cols = dense_df.loc[:,nonbinary_col_selector]
 normalized = pd.DataFrame(normalize(nonbinary_cols,norm='l1'),columns=nonbinary_cols.columns)
 dense_normalized = pd.concat((binary_cols,normalized),axis=1,ignore_index=True)
-
-# SELECT SPARSE FEATURES
-sparsefeatures = [essayvect]
-sparseheaders = sorted(essaywords.vocabulary_.keys(),key=lambda key: essaywords.vocabulary_[key])
 
 # COMBINE ALL FEATURES
 features = fg.CombineFeatures([dense_normalized],sparsefeatures)
@@ -72,16 +47,16 @@ selector_dense = np.arange(numfeatures) < numdense
 selector_sparse = selector_dense == False
 
 # TRAIN/TEST SLICING
-sel_bool_train = df.train == 1
-sel_bool_test = df.train == 0
+sel_bool_train = train == 1
+sel_bool_test = train == 0
 sel_ind_train = np.where(sel_bool_train)[0]
 sel_ind_test = np.where(sel_bool_test)[0]
 
 f_train = features[sel_ind_train]
 f_test = features[sel_ind_test]
 
-y_train = np.array(df.rejected[sel_bool_train]).astype(int)
-y_test = np.array(df.rejected[sel_bool_test]).astype(int)
+y_train = np.array(rejected[sel_bool_train]).astype(int)
+y_test = np.array(rejected[sel_bool_test]).astype(int)
 
 # CLASSIFIERS
 clf1 = MultinomialNB().fit(f_train, y_train)
