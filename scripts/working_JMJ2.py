@@ -19,12 +19,7 @@ from sklearn.preprocessing import normalize
 
 
 # LOAD DATA
-#essaywords = ds.pickleLoad('EssayWords')
-#essayvect = ds.pickleLoad('BalancedFull_Essay_Vectorized')
-#needwords = ds.pickleLoad('EssayWords')
-#needvect = ds.pickleLoad('BalancedFull_Essay_Vectorized')
 dense_df,train,rejected,summary,sparsefeatures,sparseheaders = ds.pickleLoad('FeatureSet_A')
-
 
 # NORMALIZE
 binary_col_selector = summary.distinct_count == 2
