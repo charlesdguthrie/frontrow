@@ -261,7 +261,7 @@ def topWords(rejected, approved, stemming = True):
     top_words = top_words.fillna(0)
     
     # Add new column 'rej/app'
-    top_words['rej/app'] = (top_words['Rejected'] + 1) / (top_words['Approved'] + 1)
+    top_words['rej/app'] = (top_words['Rejected'] + 1.0) / (top_words['Approved'] + 1.0)
     
     # Return top word matrix --- type(pandas.DataFrame)
     return top_words
