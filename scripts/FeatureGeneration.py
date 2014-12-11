@@ -8,6 +8,7 @@ Created on Wed Nov 19 12:46:28 2014
 from TextProcessing import *
 import textmining
 from utils import *
+import scipy
 from scipy.sparse import hstack
 
 def CombineDense(FeatureList,headers=[],dataframe=True):
@@ -36,29 +37,20 @@ def CombineDense(FeatureList,headers=[],dataframe=True):
     else:
         return np.array(OutputArray)
         
-def CombineFeatures(FeatureList):
-    # FeatureList must be a list that contains either:
-    # arrays, matrix, ndarrays, sparse arrays, or pandas objects
+def CombineFeatures(FeatureList,SparseFeatures=[]):
+    # FeatureList cannot contain sparse matrices, but can contain the following:
+    # arrays, matrix, ndarrays, or pandas objects
     #
     # Return types:
-    #   sparse matrix (coo_matrix) ---> if FeatureList contains a sparse matrix
-    #   numpy array ---> if FeatureList does not contain a sparse matrix
+    #   sparse matrix ---> if SparseFeatures not empty
+    #   numpy array ---> if SparseFeatures empty
     #
-    FeatureList = FeatureList[:]
-    DenseFeatures = []
-    SparseFeatures = []
-    for i in range(len(FeatureList)):
-        item = FeatureList[i]
-        if type(item) == scipy.sparse.coo_matrix:
-            SparseFeatures.append(item)
-        else:
-            DenseFeatures.append(item)
-        # some arrays are only 1 dimensional, they need to be
-        # 2d for hstack.  So convert.
-    
-    DenseArray = CombineDense(DenseFeatures,dataframe=False)
+    if len(FeatureList) > 1:   
+        DenseArray = CombineDense(FeatureList,dataframe=False)
+    else:
+        DenseArray = FeatureList[:]
     if len(SparseFeatures) > 0:
-        OutputArray = hstack((DenseArray,SparseFeatures))
+        OutputArray = hstack((DenseArray+SparseFeatures))
     else:
         OutputArray = DenseArray
     return OutputArray
