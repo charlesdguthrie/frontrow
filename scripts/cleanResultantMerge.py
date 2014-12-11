@@ -88,11 +88,15 @@ def splitOnDateAndDownSample(df,myDate):
 '''
 get number of nulls, number of unique values, and ten most common values
 '''
-def getSummary(df):
+def getSummary(df,rejected):
     uniqueList = []
     typeList = []
     valueList = []
     iList = []
+    meanList = []
+    mean_rejList = []
+    mean_appList = []
+    stdList = []
     
     for i,col in enumerate(df.columns):
         uniques = len(df[col][df[col].notnull()].unique())
@@ -100,12 +104,21 @@ def getSummary(df):
         if(uniques>100):
             values = "too many to calculate"
         else:
-            values = df[col].value_counts().iloc[:10]
+            numvals = len(df[col].value_counts())
+            values = df[col].value_counts().iloc[:min(10,numvals)]
         valueList.append(values)
         typeList.append(np.dtype(df[col]))
         iList.append(i)
+        meanList.append(df[col].mean())
+        mean_rejList.append(df[rejected==1][col].mean())
+        mean_appList.append(df[rejected==0][col].mean())
+        stdList.append(df[col].std())
         
     uniqueSeries = pd.Series(uniqueList, index=df.columns)
+    meanSeries = pd.Series(meanList,index=df.columns)
+    meanrejSeries = pd.Series(mean_rejList,index=df.columns)
+    meanappSeries = pd.Series(mean_appList,index=df.columns)
+    stdSeries = pd.Series(stdList,index=df.columns)
     valueSeries = pd.Series(valueList, index=df.columns)
     typeSeries = pd.Series(typeList, index=df.columns)
     iSeries = pd.Series(iList,index=df.columns)
@@ -114,12 +127,16 @@ def getSummary(df):
     summaryItems = [
         ('nulls', df.shape[0] - df.count()),
         ('distinct_count', uniqueSeries),
+        ('mean', meanSeries),
+        ('mean_rej', meanrejSeries),
+        ('mean_app', meanappSeries),
+        ('std_dev', stdSeries),
         ('top10Values', valueSeries),
         ('dtype', typeSeries),
         ('i', iSeries)
     ]
     summaryDF = pd.DataFrame.from_items(summaryItems)
-    print 'Rows,Columns',df.shape
+    #print 'Rows,Columns',df.shape
     return summaryDF
 
 
