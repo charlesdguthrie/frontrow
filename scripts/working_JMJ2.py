@@ -73,27 +73,16 @@ roc_auc = auc(fpr,tpr)
 st.plotROC(fpr,tpr,roc_auc,"LogRegSGD")
 
 
-def coef_dataframe(coef_array,indices,summary=[]):
-    df = pd.DataFrame(
-                np.vstack((coef_array,np.abs(coef_array))).T,
-                index=indices,
-                columns=['coef','coef_abs'])
-    if len(summary) > 0:
-        df = pd.concat((df,summary.loc[indices]),axis=1)
-    df = df.sort(['coef_abs'],ascending=False)
-    df = df.loc[:,df.columns != 'coef_abs']
-    return df
-
 coef_dense = clf2.coef_[0][selector_dense]
-coef_binary = coef_dataframe(
+coef_binary = st.coef_dataframe(
                     coef_dense[np.array(binary_col_selector)],
                     binary_cols.columns,
                     summary)
-coef_numerical = coef_dataframe(
+coef_numerical = st.coef_dataframe(
                     coef_dense[np.array(nonbinary_col_selector)],
                     nonbinary_cols.columns,
                     summary)
-coef_sparse = coef_dataframe(
+coef_sparse = st.coef_dataframe(
                     clf2.coef_[0][selector_sparse],
                     sparseheaders)
                     
