@@ -49,8 +49,9 @@ sel_ind_test = np.where(sel_bool_test)[0]
 f_train = features[sel_ind_train]
 f_test = features[sel_ind_test]
 
-y_train = np.array(rejected[sel_bool_train]).astype(int)
-y_test = np.array(rejected[sel_bool_test]).astype(int)
+approved = 1-rejected
+y_train = np.array(approved[sel_bool_train]).astype(int)
+y_test = np.array(approved[sel_bool_test]).astype(int)
 
 # CLASSIFIERS
 '''
@@ -87,6 +88,11 @@ coef_numerical = st.coef_dataframe(
 coef_sparse = st.coef_dataframe(
                     clf2.coef_[0][selector_sparse],
                     sparseheaders)
+                    
+roc = pd.DataFrame(np.hstack((np.reshape(tpr,(-1,1)),np.reshape(fpr,(-1,1)))),columns=['TPR','FPR'])
+
+                    
+#ds.pickleIt((coef_binary,coef_numerical,coef_sparse),'FeatureSetA_coef_summaries')
 
 def LogisticGridSearch():  
     # C=1 is best
