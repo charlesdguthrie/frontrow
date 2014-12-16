@@ -49,6 +49,7 @@ sel_ind_test = np.where(sel_bool_test)[0]
 f_train = features[sel_ind_train]
 f_test = features[sel_ind_test]
 
+# N
 approved = 1-rejected
 y_train = np.array(approved[sel_bool_train]).astype(int)
 y_test = np.array(approved[sel_bool_test]).astype(int)
@@ -91,7 +92,44 @@ coef_sparse = st.coef_dataframe(
                     
 roc = pd.DataFrame(np.hstack((np.reshape(tpr,(-1,1)),np.reshape(fpr,(-1,1)))),columns=['TPR','FPR'])
 
-                    
+bool_approved = approved == 1
+bool_rejected = approved == 0
+
+ind_approved = np.where(bool_approved)
+ind_rejected = np.where(bool_rejected)
+
+sparse_approved = sparsefeatures[0][ind_approved]
+sparse_rejected = sparsefeatures[0][ind_rejected]
+
+avg_tfidf_approved = pd.DataFrame(
+                            sparse_approved.mean(axis=0).reshape(-1,1),
+                            index=sparseheaders,
+                            columns=['avg_tfidf'])
+avg_tfidf_rejected = pd.DataFrame(
+                            sparse_rejected.mean(axis=0).reshape(-1,1),
+                            index=sparseheaders,
+                            columns=['avg_tfidf'])
+                            
+avg_tfidf_approved = avg_tfidf_approved.sort('avg_tfidf',ascending=False)
+avg_tfidf_rejected = avg_tfidf_rejected.sort('avg_tfidf',ascending=False)
+
+avg_tfidf_approved_top10 = avg_tfidf_approved.iloc[:10,:]         
+avg_tfidf_rejected_top10 = avg_tfidf_rejected.iloc[:10,:]          
+
+app_indices = avg_tfidf_approved.index
+rej_indices = avg_tfidf_rejected.index
+
+topwords = pd.concat(
+                (pd.DataFrame(app_indices,columns=['Approved']),
+                 pd.DataFrame(np.array(avg_tfidf_approved),columns=['AVGTFIDF_Approved']),
+                 pd.DataFrame(rej_indices,columns=['Rejected']),
+                 pd.DataFrame(np.array(avg_tfidf_rejected),columns=['AVGTFIDF_Rejected'])),
+                axis = 1,
+                ignore_index = False)
+
+
+    
+
 #ds.pickleIt((coef_binary,coef_numerical,coef_sparse),'FeatureSetA_coef_summaries')
 
 def LogisticGridSearch():  
