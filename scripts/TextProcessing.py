@@ -172,12 +172,8 @@ def tfidf(df_column, method = 'vect'):
     # Create a term document matrix
     x = vectorizer.fit_transform(df_column)
     
-    if method == 'vect': 
-        return x, vectorizer
-    else:
-        # Get feature names
-        feature_names = vectorizer.get_feature_names()
-        return x, feature_names
+    return x, vectorizer
+    #feature_names = vectorizer.get_feature_names()
     
 ###Inputs and Outputs###  
 #  x               'scipy.sparse.csc.csc_matrix' created by 'tfidf' method
