@@ -9,7 +9,7 @@ import DataLoading as dl
 tableau20 = [(31, 119, 180), (174, 199, 232), (255, 127, 14), (255, 187, 120),  
              (44, 160, 44), (152, 223, 138), (214, 39, 40), (255, 152, 150),  
              (148, 103, 189), (197, 176, 213), (140, 86, 75), (196, 156, 148),  
-             (227, 119, 194), (247, 182, 210), (127, 127, 127), (199, 199, 199),  
+             (227, 119, 194), (247, 182, 210), (157, 157, 157), (199, 199, 199),  
              (188, 189, 34), (219, 219, 141), (23, 190, 207), (158, 218, 229)] 
 
 # Scale the RGB values to the [0, 1] range, which is the format matplotlib accepts.  
@@ -17,12 +17,15 @@ for i in range(len(tableau20)):
     r, g, b = tableau20[i]  
     tableau20[i] = (r / 255., g / 255., b / 255.) 
 
+color_rejected = tableau20[14]
+color_approved = tableau20[2]
 
-def makehist(series,rejected,mincount=0,bins=[],autobin=False,title="",filename="_"):
+
+def makehist(series,rejected,mincount=0,bins=[],title="",filename="_"):
     rej = rejected == 1
     app = rejected == 0
-    nrej = sum(rej)*1.0
-    napp = sum(app)*1.0
+    #nrej = sum(rej)*1.0
+    #napp = sum(app)*1.0
     
     
     #series_rej = pd.Series({count: sum(series[rej]==count) for count in pd.unique(series[rej])})
@@ -32,18 +35,15 @@ def makehist(series,rejected,mincount=0,bins=[],autobin=False,title="",filename=
     #app_plot = series_app[series_app.index>=mincount]/napp
     fig, ax = plt.subplots(1)
     
-    if autobin == False:
-        if len(bins)==0:
-            bins = np.arange(mincount,mincount+40,5)
-        ppl.hist(ax,np.array(series[rej]),bins=bins,label='rejected',color=tableau20[2],alpha=0.8)
-        ppl.hist(ax,np.array(series[app]),bins=bins,label='approved',color=tableau20[15],alpha=0.4)
-        
-            
+    if len(bins) > 0:
+        ppl.hist(ax,np.array(series[app]),bins=bins,label='approved',color=color_approved,alpha=0.8)
+        ppl.hist(ax,np.array(series[rej]),bins=bins,label='rejected',color=color_rejected,alpha=0.4)
+
         #n1,bin1,_ = ppl.hist(ax,np.array(rej_plot.index),bins=bins,weights=np.array(rej_plot),label='rejected')
         #n2,bin2,_ = ppl.hist(ax,np.array(app_plot.index),bins=bins,weights=np.array(app_plot),label='approved')
     else:        
-        ppl.hist(ax,np.array(series[rej]),label='rejected',color=tableau20[2],alpha=0.8)
-        ppl.hist(ax,np.array(series[app]),label='approved',color=tableau20[15],alpha=0.4)
+        ppl.hist(ax,np.array(series[app]),label='approved',color=color_approved,alpha=0.8)
+        ppl.hist(ax,np.array(series[rej]),label='rejected',color=color_rejected,alpha=0.4)
         
         #n1,bin1,_ = ppl.hist(ax,np.array(rej_plot.index),weights=np.array(rej_plot),label='rejected')
         #n2,bin2,_ = ppl.hist(ax,np.array(app_plot.index),weights=np.array(app_plot),label='approved')
@@ -97,85 +97,112 @@ def makebarplot(series,rejected,title="",filename='_'):
     plt.savefig(filepath)
     plt.show()
 
+def getSparseColumn(featurename,sparsefeatures,sparseheaders):
+    return pd.Series(sparsefeatures[:,sparseheaders.index('student')].toarray().ravel())
+    
 
 # LOAD DATA
 dense_df,train,rejected,summary,sparsefeatures,sparseheaders = ds.pickleLoad('FeatureSet_A')
 df = dense_df
+
+
+
 maxcaps = df.maxcaps
-totalcaps = df.totalcaps
-dollarcount_ser = df.dollarcount
-dollarbool_ser = df.dollarbool
-email_ser = df.email
-urls_ser = df.urls
-essay_len = df.essay_len
-total_price = df.total_price_excluding_optional_support
-pay_proc = df.payment_processing_charges
-
-
-#bins = [4,8,12,16,20,24]
 makehist(
     maxcaps,
     rejected,
     mincount=4,
+    bins=np.arange(4,45,2),
     title="Max consecutive capitilized letters",
     filename='maxcaps')
                 
-#bins = [1,6,11,16,21,26,31,36]
+totalcaps = df.totalcaps
 makehist(
     totalcaps,
     rejected,
     mincount=1,
+    bins=np.arange(1,30,1),
     title="total # capitilized letters",
     filename='totalcaps')
                 
+dollarcount_ser = df.dollarcount
 makehist(
     dollarcount_ser,
     rejected,
     mincount=1,
+    bins=np.arange(1,15,1),
     title="total # '$'",
     filename='dollarcount')
-                
+
+dollarbool_ser = df.dollarbool
 makebarplot(
     dollarbool_ser,
     rejected,
     title="$ present",
     filename='dollarbool')
-    
+
+email_ser = df.email    
 makebarplot(
     email_ser,
     rejected,
     title="@ present",
     filename='emailbool')
-    
+
+urls_ser = df.urls    
 makebarplot(
     urls_ser,
     rejected,
     title="url present",
     filename='urlbool')
-    
-bins = np.arange(0,3501,50)
+
+essay_len = df.essay_len    
 makehist(
     essay_len,
     rejected,
     mincount=0,
-    bins=bins,
+    bins=np.arange(0,3501,50),
     title="Essay Length",
     filename='essay_len')
-                
-bins = np.arange(0,3501,50)
+         
+total_price = df.total_price_excluding_optional_support
 makehist(
     total_price,
     rejected,
     mincount=0,
-    bins=bins,
+    bins=np.arange(0,3501,50),
     title="Total Price",
     filename='total_price')
-                
-bins = np.arange(0,41,2)
+
+pay_proc = df.payment_processing_charges                
 makehist(
     pay_proc,
     rejected,
     mincount=0,
-    bins=bins,
+    bins=np.arange(0,41,2),
     title="Payment Processing Charges",
     filename='pay_proc')
+
+sparse_student = getSparseColumn('student',sparsefeatures[0],sparseheaders)
+makehist(
+    sparse_student,
+    rejected,
+    mincount=0,
+    bins=np.arange(0,0.2,0.01),
+    title="word: student",
+    filename='sparse_student')
+
+sparse_thier = getSparseColumn('thier',sparsefeatures[0],sparseheaders)
+makehist(
+    sparse_thier,
+    rejected,
+    mincount=0,
+    bins=np.arange(0,0.2,0.01),
+    title="word: thier",
+    filename='sparse_thier')
+    
+highest_poverty = df['poverty_level_highest poverty']
+makebarplot(
+    highest_poverty,
+    rejected,
+    title="highest poverty level",
+    filename='highest_poverty')
