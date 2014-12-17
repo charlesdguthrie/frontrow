@@ -129,6 +129,8 @@ topwords = pd.concat(
 
 df = ds.pickleLoad('BalancedFull')
 def ClosestRecord(threshold=0.01,label=1):
+    # grabs records with label = 1 in test set with probability
+    # closest to threshold
     myprobs = probs[:,1]
     probs_rejected = y_test == label
     diff_myprobs = np.abs(myprobs-threshold)
