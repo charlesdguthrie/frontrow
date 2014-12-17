@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import DataSets as ds
 import matplotlib.pyplot as plt
+import prettyplotlib as ppl
+
 
 def makehist(series,rejected,mincount=0,bins=[],title=""):
     rej = rejected == 1
@@ -14,13 +16,13 @@ def makehist(series,rejected,mincount=0,bins=[],title=""):
 
     rej_plot = series_rej[series_rej.index>=mincount]/nrej
     app_plot = series_app[series_app.index>=mincount]/napp
-    plt.figure()
+    fig, ax = plt.subplots(1)
     if len(bins)>0:
-        n1,bin1,_ = plt.hist(np.array(rej_plot.index),bins=bins,weights=np.array(rej_plot),label='rejected')
-        n2,bin2,_ = plt.hist(np.array(app_plot.index),bins=bins,weights=np.array(app_plot),label='approved')
+        n1,bin1,_ = ppl.hist(ax,np.array(rej_plot.index),bins=bins,weights=np.array(rej_plot),label='rejected')
+        n2,bin2,_ = ppl.hist(ax,np.array(app_plot.index),bins=bins,weights=np.array(app_plot),label='approved')
     else:
-        n1,bin1,_ = plt.hist(np.array(rej_plot.index),weights=np.array(rej_plot),label='rejected')
-        n2,bin2,_ = plt.hist(np.array(app_plot.index),weights=np.array(app_plot),label='approved')
+        n1,bin1,_ = ppl.hist(ax,np.array(rej_plot.index),weights=np.array(rej_plot),label='rejected')
+        n2,bin2,_ = ppl.hist(ax,np.array(app_plot.index),weights=np.array(app_plot),label='approved')
     plt.legend()
     if mincount > 0:
         title = title + "(count >= " + str(mincount) + ")"
