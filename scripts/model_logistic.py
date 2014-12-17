@@ -30,6 +30,10 @@ df = createDummies(df)
 
 df = replaceNansWithMean(df)
 
+
+#add vectorized data
+
+
 #split into train, test; and features vs outcome
 train = df[df.train==1].drop('train', axis=1)
 test = df[df.train==0].drop('train', axis=1)
