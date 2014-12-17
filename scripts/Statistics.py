@@ -12,6 +12,16 @@ import numpy as np
 import pandas as pd
 from utils import *
 
+def coef_dataframe(coef_array,indices,summary=[]):
+    df = pd.DataFrame(
+                np.vstack((coef_array,np.abs(coef_array))).T,
+                index=indices,
+                columns=['coef','coef_abs'])
+    if len(summary) > 0:
+        df = pd.concat((df,summary.loc[indices]),axis=1)
+    df = df.sort(['coef_abs'],ascending=False)
+    df = df.loc[:,df.columns != 'coef_abs']
+    return df
 
 def plotROC(fpr,tpr,roc_auc,title=""):
     plt.figure()
@@ -57,3 +67,4 @@ def TrainTestSplit(data_app,data_rej,mytest_size=0.3):
 @timethis
 def Classifier_NLTK_NaiveBayes(train,*args,**kwargs):
     return NaiveBayesClassifier.train(train)
+
