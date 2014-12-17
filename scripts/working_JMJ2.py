@@ -127,8 +127,15 @@ topwords = pd.concat(
                 axis = 1,
                 ignore_index = False)
 
+df = ds.pickleLoad('BalancedFull')
+def ClosestRecord(threshold=0.01,label=1):
+    myprobs = probs[:,1]
+    probs_rejected = y_test == label
+    diff_myprobs = np.abs(myprobs-threshold)
+    minval = min(diff_myprobs[probs_rejected])
+    ind_minval_rejected = np.logical_and(probs_rejected,diff_myprobs==minval)
+    return df[sel_bool_test][ind_minval_rejected],dense_df[sel_bool_test][ind_minval_rejected]
 
-    
 
 #ds.pickleIt((coef_binary,coef_numerical,coef_sparse),'FeatureSetA_coef_summaries')
 
