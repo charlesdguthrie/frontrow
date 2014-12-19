@@ -23,18 +23,26 @@ def coef_dataframe(coef_array,indices,summary=[]):
     df = df.loc[:,df.columns != 'coef_abs']
     return df
 
-def plotROC(fpr,tpr,roc_auc,title=""):
-    plt.figure()
-    plt.plot(fpr,tpr,label=title+" (AUC = %0.2f)" % roc_auc)
+def plotROC(fpr,tpr,roc_auc,legendlabel="",title="ROC Curves",figure=True,show=True,returnplt=False,showlegend=True):
+    if figure:
+        plt.figure()
+    if len(legendlabel) > 0:
+        plt.plot(fpr,tpr,label=legendlabel+" (AUC = %0.2f)" % roc_auc)
+    else:
+        plt.plot(fpr,tpr)
     plt.plot([0,1],[0,1],'k--')
     plt.xlim([0.0,1.0])
     plt.ylim([0.0,1.05])
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('ROC Curves')
-    plt.legend(loc="lower right")
-    plt.show()
-    
+    plt.title(title)
+    if showlegend:
+        plt.legend(loc="lower right")
+    if show:
+        plt.show()
+    if returnplt:
+        return plt
+
 
 def getROC_NLTK(classifier,testset):
     # for NLTK classifiers ONLY
